@@ -10,11 +10,11 @@ type ManageAdminUserRouter struct {
 }
 
 func (r *ManageAdminUserRouter) InitManageAdminUserRouter(Router *gin.RouterGroup) {
-	adminUserRouter := Router.Group("v1").Use(middleware.AdminJWTAuth())
-	adminUserWithoutRouter := Router.Group("v1")
+	adminUserRouter := Router.Use(middleware.AdminJWTAuth())
+	adminUserWithoutRouter := Router
 	var adminUserApi = v1.ApiGroupApp.ManageApiGroup.ManageAdminUserApi
 	{
-		adminUserRouter.POST("createadminUser", adminUserApi.CreateAdminUser)
+		adminUserRouter.POST("createAdminUser", adminUserApi.CreateAdminUser)
 		adminUserRouter.PUT("adminUser/name", adminUserApi.UpdateAdminUserName)
 		adminUserRouter.PUT("adminUser/password", adminUserApi.UpdateAdminUserPassword)
 		adminUserRouter.GET("adminUser/profile", adminUserApi.AdminUserProfile)

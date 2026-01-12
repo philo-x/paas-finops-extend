@@ -28,7 +28,7 @@ func Routers() *gin.Engine {
 
 	// 管理路由
 	manageRouter := router.RouterGroupApp.Manage
-	ManageGroup := Router.Group("api/manage")
+	ManageGroup := Router.Group("api/v1/manage")
 	{
 		// 管理路由初始化
 		manageRouter.InitManageAdminUserRouter(ManageGroup)
@@ -36,7 +36,7 @@ func Routers() *gin.Engine {
 
 	// 告警路由
 	observeRouter := router.RouterGroupApp.Observe
-	AlertGroup := Router.Group("api/observe")
+	AlertGroup := Router.Group("api/v1/observe")
 	{
 		// 告警路由初始化
 		observeRouter.InitObserveAlertRouter(AlertGroup)

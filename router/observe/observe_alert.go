@@ -9,7 +9,7 @@ type ObserveAlertRouter struct {
 }
 
 func (r *ObserveAlertRouter) InitObserveAlertRouter(Router *gin.RouterGroup) {
-	alertRouter := Router.Group("v1")
+	alertRouter := Router
 	var alertApi = v1.ApiGroupApp.ObserveApiGroup.ObserveAlertApi
 	{
 		alertRouter.POST("alerts", alertApi.CreateAlert)
