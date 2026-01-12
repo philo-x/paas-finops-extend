@@ -7,7 +7,7 @@ import (
 
 type RouterGroup struct {
 	Manage  manage.ManageRouterGroup
-	Observe observe.OberveRouterGroup
+	Observe observe.ObserveRouterGroup
 }
 
 var RouterGroupApp = new(RouterGroup)

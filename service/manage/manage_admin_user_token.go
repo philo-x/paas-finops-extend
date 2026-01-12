@@ -14,6 +14,6 @@ func (m *ManageAdminUserTokenService) ExistAdminToken(token string) (err error, 
 }
 
 func (m *ManageAdminUserTokenService) DeleteAdminUserToken(token string) (err error) {
-	err = global.GVA_DB.Delete(&[]manage.AdminUserToken{}, "token =?", token).Error
+	err = global.GVA_DB.Where("token = ?", token).Delete(&manage.AdminUserToken{}).Error
 	return err
 }

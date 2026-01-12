@@ -6,3 +6,6 @@
 [newbee_mall]2026/01/09 - 17:18:51.843	[31merror[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/core/server.go:26	accept tcp [::]:8888: use of closed network connection
 [newbee_mall]2026/01/09 - 17:24:09.707	[31merror[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/api/v1/manage/manage_alert.go:26	创建失败!	{"error": "Error 1292: Incorrect datetime value: '0000-00-00' for column 'ends_at' at row 1"}
 [newbee_mall]2026/01/09 - 17:24:51.957	[31merror[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/core/server.go:26	accept tcp [::]:8888: use of closed network connection
+[finops]2026/01/12 - 15:09:16.306	[31merror[0m	/Users/xuuyin/Dev/GolandProjects/paas-finops-extend/core/server.go:26	accept tcp [::]:8888: use of closed network connection
+[finops_extend]2026/01/12 - 15:11:05.718	[31merror[0m	/Users/xuuyin/Dev/GolandProjects/paas-finops-extend/core/server.go:26	accept tcp [::]:8888: use of closed network connection
+[finops_extend]2026/01/12 - 15:11:19.018	[31merror[0m	/Users/xuuyin/Dev/GolandProjects/paas-finops-extend/core/server.go:26	accept tcp [::]:8888: use of closed network connection

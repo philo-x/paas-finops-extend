@@ -50,10 +50,10 @@ func (m *ManageAdminUserService) UpdateAdminPassWord(token string, req manageReq
 	if err != nil {
 		return errors.New("不存在的用户")
 	}
-	if adminUser.LoginPassword != req.OriginalPassword {
+	if adminUser.LoginPassword != utils.MD5V([]byte(req.OriginalPassword)) {
 		return errors.New("原密码不正确")
 	}
-	adminUser.LoginPassword = req.NewPassword
+	adminUser.LoginPassword = utils.MD5V([]byte(req.NewPassword))
 
 	err = global.GVA_DB.Where("admin_user_id=?", adminUser.AdminUserId).Updates(&adminUser).Error
 	return
@@ -74,7 +74,7 @@ func (m *ManageAdminUserService) AdminLogin(params manageReq.AdminLoginParam) (e
 	err = global.GVA_DB.Where("login_user_name=? AND login_password=?", params.UserName, params.PasswordMd5).First(&adminUser).Error
 	if adminUser != (manage.AdminUser{}) {
 		token := getNewToken(time.Now().UnixNano()/1e6, int(adminUser.AdminUserId))
-		global.GVA_DB.Where("admin_user_id", adminUser.AdminUserId).First(&adminToken)
+		global.GVA_DB.Where("admin_user_id = ?", adminUser.AdminUserId).First(&adminToken)
 		nowDate := time.Now()
 		// 48小时过期
 		expireTime, _ := time.ParseDuration("48h")

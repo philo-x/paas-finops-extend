@@ -1,5 +1,5 @@
 package observe
 
-type OberveRouterGroup struct {
+type ObserveRouterGroup struct {
 	ObserveAlertRouter
 }

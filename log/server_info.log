@@ -22,3 +22,15 @@
 [newbee_mall]2026/01/09 - 17:23:47.244	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:18	use middleware cors
 [newbee_mall]2026/01/09 - 17:23:47.244	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:54	router register success
 [newbee_mall]2026/01/09 - 17:23:47.244	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/core/server.go:24	server run success on 	{"address": ":8888"}
+[finops]2026/01/12 - 15:08:58.647	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/paas-finops-extend/initialize/router.go:15	use middleware logger
+[finops]2026/01/12 - 15:08:58.647	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/paas-finops-extend/initialize/router.go:18	use middleware cors
+[finops]2026/01/12 - 15:08:58.648	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/paas-finops-extend/initialize/router.go:45	router register success
+[finops]2026/01/12 - 15:08:58.648	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/paas-finops-extend/core/server.go:24	server run success on 	{"address": ":8888"}
+[finops_extend]2026/01/12 - 15:10:44.998	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/paas-finops-extend/initialize/router.go:15	use middleware logger
+[finops_extend]2026/01/12 - 15:10:44.998	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/paas-finops-extend/initialize/router.go:18	use middleware cors
+[finops_extend]2026/01/12 - 15:10:44.998	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/paas-finops-extend/initialize/router.go:45	router register success
+[finops_extend]2026/01/12 - 15:10:44.998	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/paas-finops-extend/core/server.go:24	server run success on 	{"address": ":8888"}
+[finops_extend]2026/01/12 - 15:11:08.934	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/paas-finops-extend/initialize/router.go:15	use middleware logger
+[finops_extend]2026/01/12 - 15:11:08.934	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/paas-finops-extend/initialize/router.go:18	use middleware cors
+[finops_extend]2026/01/12 - 15:11:08.934	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/paas-finops-extend/initialize/router.go:45	router register success
+[finops_extend]2026/01/12 - 15:11:08.934	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/paas-finops-extend/core/server.go:24	server run success on 	{"address": ":8888"}

@@ -36,7 +36,7 @@ func Routers() *gin.Engine {
 
 	// 告警路由
 	observeRouter := router.RouterGroupApp.Observe
-	AlertGroup := Router.Group("api/oberve")
+	AlertGroup := Router.Group("api/observe")
 	{
 		// 告警路由初始化
 		observeRouter.InitObserveAlertRouter(AlertGroup)

@@ -53,7 +53,7 @@ Each layer has an `enter.go` that aggregates module groups:
 
 **Base paths:**
 - `/api/manage/v1/` - Admin management routes
-- `/api/oberve/v1/` - Observability routes (alerts)
+- `/api/observe/v1/` - Observability routes (alerts)
 
 **Admin User (`/api/manage/v1/`):**
 - `POST adminUser/login` - Admin login (public)
@@ -64,7 +64,7 @@ Each layer has an `enter.go` that aggregates module groups:
 - `DELETE logout` - Logout
 - `POST upload/file` - Upload file
 
-**Alerts (`/api/oberve/v1/`):**
+**Alerts (`/api/observe/v1/`):**
 - `POST alerts` - Create alert
 - `GET alerts` - Get alert list
 - `GET alerts/:alertId` - Get alert by ID
@@ -89,12 +89,12 @@ var alertService = service.ServiceGroupApp.ObserveServiceGroup.ObserveAlertServi
 
 **Model Definition:**
 ```go
-type FinopsAdminUser struct {
+type AdminUser struct {
     AdminUserId int `json:"adminUserId" gorm:"primarykey;AUTO_INCREMENT"`
     // ...
 }
-func (FinopsAdminUser) TableName() string {
-    return "finops_admin_user"
+func (AdminUser) TableName() string {
+    return "admin_user"
 }
 ```
 
@@ -121,6 +121,6 @@ func (FinopsAdminUser) TableName() string {
 
 ## Database Tables
 
-- `finops_admin_user` - Admin users
-- `finops_admin_user_token` - Admin tokens
-- `finops_alert` - Alerts
+- `admin_user` - Admin users
+- `admin_user_token` - Admin tokens
+- `prometheus_alert` - Alerts
