@@ -1,16 +1,16 @@
-package manage
+package observe
 
 import (
 	"github.com/gin-gonic/gin"
 	v1 "main.go/api/v1"
 )
 
-type ManageAlertRouter struct {
+type ObserveAlertRouter struct {
 }
 
-func (r *ManageAlertRouter) InitManageAlertRouter(Router *gin.RouterGroup) {
+func (r *ObserveAlertRouter) InitObserveAlertRouter(Router *gin.RouterGroup) {
 	alertRouter := Router.Group("v1")
-	var alertApi = v1.ApiGroupApp.ManageApiGroup.ManageAlertApi
+	var alertApi = v1.ApiGroupApp.ObserveApiGroup.ObserveAlertApi
 	{
 		alertRouter.POST("alerts", alertApi.CreateAlert)
 		alertRouter.DELETE("alerts/:alertId", alertApi.DeleteAlert)

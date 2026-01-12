@@ -1,11 +1,12 @@
-package manage
+package observe
 
 import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	"main.go/model/common"
 	"time"
+
+	"main.go/model/common"
 )
 
 // AlertNotification 告警通知
@@ -63,8 +64,8 @@ func (l *AlertLabels) Scan(value interface{}) error {
 	return json.Unmarshal(bytes, l)
 }
 
-// FinopsAlert 告警信息模型
-type FinopsAlert struct {
+// PrometheusAlert 告警信息模型
+type PrometheusAlert struct {
 	AlertId     int              `json:"alertId" form:"alertId" gorm:"primarykey;AUTO_INCREMENT"`
 	Status      string           `json:"status" form:"status" gorm:"column:status;comment:告警状态;type:varchar(50);"`
 	StartsAt    time.Time        `json:"startsAt" form:"startsAt" gorm:"column:starts_at;comment:告警开始时间;type:datetime;"`
@@ -76,9 +77,9 @@ type FinopsAlert struct {
 	UpdateTime  common.JSONTime  `json:"updateTime" form:"updateTime" gorm:"column:update_time;comment:最新修改时间;type:datetime;"`
 }
 
-// TableName FinopsAlert 表名
-func (FinopsAlert) TableName() string {
-	return "finops_alert"
+// TableName PrometheusAlert 表名
+func (PrometheusAlert) TableName() string {
+	return "prometheus_alert"
 }
 
 // AlertRequest 创建/更新告警请求结构

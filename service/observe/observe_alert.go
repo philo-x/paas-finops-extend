@@ -1,18 +1,19 @@
-package manage
+package observe
 
 import (
+	"time"
+
 	"main.go/global"
 	"main.go/model/common"
 	"main.go/model/common/request"
-	"main.go/model/manage"
-	"time"
+	"main.go/model/observe"
 )
 
-type ManageAlertService struct {
+type ObserveAlertService struct {
 }
 
 // CreateAlert 创建告警
-func (m *ManageAlertService) CreateAlert(req manage.AlertRequest) (err error, alert manage.FinopsAlert) {
+func (m *ObserveAlertService) CreateAlert(req observe.AlertRequest) (err error, alert observe.PrometheusAlert) {
 	startsAt, err := time.Parse(time.RFC3339, req.StartsAt)
 	if err != nil {
 		return err, alert
@@ -26,7 +27,7 @@ func (m *ManageAlertService) CreateAlert(req manage.AlertRequest) (err error, al
 		}
 	}
 
-	alert = manage.FinopsAlert{
+	alert = observe.PrometheusAlert{
 		Status:      req.Status,
 		StartsAt:    startsAt,
 		EndsAt:      endsAt,
@@ -42,8 +43,8 @@ func (m *ManageAlertService) CreateAlert(req manage.AlertRequest) (err error, al
 }
 
 // DeleteAlert 删除告警（软删除）
-func (m *ManageAlertService) DeleteAlert(id int) (err error) {
-	err = global.GVA_DB.Model(&manage.FinopsAlert{}).Where("alert_id = ?", id).Updates(map[string]interface{}{
+func (m *ObserveAlertService) DeleteAlert(id int) (err error) {
+	err = global.GVA_DB.Model(&observe.PrometheusAlert{}).Where("alert_id = ?", id).Updates(map[string]interface{}{
 		"is_deleted":  1,
 		"update_time": common.JSONTime{Time: time.Now()},
 	}).Error
@@ -51,8 +52,8 @@ func (m *ManageAlertService) DeleteAlert(id int) (err error) {
 }
 
 // DeleteAlertBatch 批量删除告警
-func (m *ManageAlertService) DeleteAlertBatch(ids request.IdsReq) (err error) {
-	err = global.GVA_DB.Model(&manage.FinopsAlert{}).Where("alert_id in ?", ids.Ids).Updates(map[string]interface{}{
+func (m *ObserveAlertService) DeleteAlertBatch(ids request.IdsReq) (err error) {
+	err = global.GVA_DB.Model(&observe.PrometheusAlert{}).Where("alert_id in ?", ids.Ids).Updates(map[string]interface{}{
 		"is_deleted":  1,
 		"update_time": common.JSONTime{Time: time.Now()},
 	}).Error
@@ -60,7 +61,7 @@ func (m *ManageAlertService) DeleteAlertBatch(ids request.IdsReq) (err error) {
 }
 
 // UpdateAlert 更新告警
-func (m *ManageAlertService) UpdateAlert(id int, req manage.AlertRequest) (err error) {
+func (m *ObserveAlertService) UpdateAlert(id int, req observe.AlertRequest) (err error) {
 	startsAt, err := time.Parse(time.RFC3339, req.StartsAt)
 	if err != nil {
 		return err
@@ -74,7 +75,7 @@ func (m *ManageAlertService) UpdateAlert(id int, req manage.AlertRequest) (err e
 		}
 	}
 
-	err = global.GVA_DB.Model(&manage.FinopsAlert{}).Where("alert_id = ? AND is_deleted = 0", id).Updates(map[string]interface{}{
+	err = global.GVA_DB.Model(&observe.PrometheusAlert{}).Where("alert_id = ? AND is_deleted = 0", id).Updates(map[string]interface{}{
 		"status":      req.Status,
 		"starts_at":   startsAt,
 		"ends_at":     endsAt,
@@ -86,13 +87,13 @@ func (m *ManageAlertService) UpdateAlert(id int, req manage.AlertRequest) (err e
 }
 
 // GetAlert 根据ID获取告警
-func (m *ManageAlertService) GetAlert(id int) (err error, alert manage.FinopsAlert) {
+func (m *ObserveAlertService) GetAlert(id int) (err error, alert observe.PrometheusAlert) {
 	err = global.GVA_DB.Where("alert_id = ? AND is_deleted = 0", id).First(&alert).Error
 	return err, alert
 }
 
 // GetAlertList 分页获取告警列表
-func (m *ManageAlertService) GetAlertList(info request.PageInfo, status string, severity string) (err error, list []manage.FinopsAlert, total int64) {
+func (m *ObserveAlertService) GetAlertList(info request.PageInfo, status string, severity string) (err error, list []observe.PrometheusAlert, total int64) {
 	limit := info.PageSize
 	if limit == 0 {
 		limit = 10
@@ -102,7 +103,7 @@ func (m *ManageAlertService) GetAlertList(info request.PageInfo, status string, 
 		offset = 0
 	}
 
-	db := global.GVA_DB.Model(&manage.FinopsAlert{}).Where("is_deleted = 0")
+	db := global.GVA_DB.Model(&observe.PrometheusAlert{}).Where("is_deleted = 0")
 
 	if status != "" {
 		db = db.Where("status = ?", status)

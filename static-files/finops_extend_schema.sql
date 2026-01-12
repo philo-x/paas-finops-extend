@@ -4,15 +4,15 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ----------------------------
 -- 数据库创建
 -- ----------------------------
-CREATE DATABASE IF NOT EXISTS `finops_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `finops_db`;
+CREATE DATABASE IF NOT EXISTS `finops_extend` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `finops_extend`;
 
 -- ----------------------------
 -- 管理员用户表
 -- ----------------------------
-DROP TABLE IF EXISTS `finops_admin_user`;
+DROP TABLE IF EXISTS `admin_user`;
 
-CREATE TABLE `finops_admin_user` (
+CREATE TABLE `admin_user` (
   `admin_user_id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '管理员id',
   `login_user_name` varchar(50) NOT NULL COMMENT '管理员登陆名称',
   `login_password` varchar(50) NOT NULL COMMENT '管理员登陆密码',
@@ -22,15 +22,15 @@ CREATE TABLE `finops_admin_user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='管理员用户表';
 
 -- 默认管理员账户 admin/123456
-INSERT INTO `finops_admin_user` (`admin_user_id`, `login_user_name`, `login_password`, `nick_name`, `locked`)
+INSERT INTO `admin_user` (`admin_user_id`, `login_user_name`, `login_password`, `nick_name`, `locked`)
 VALUES (1, 'admin', 'e10adc3949ba59abbe56e057f20f883e', '管理员', 0);
 
 -- ----------------------------
 -- 管理员Token表
 -- ----------------------------
-DROP TABLE IF EXISTS `finops_admin_user_token`;
+DROP TABLE IF EXISTS `admin_user_token`;
 
-CREATE TABLE `finops_admin_user_token` (
+CREATE TABLE `admin_user_token` (
   `admin_user_id` bigint(20) NOT NULL COMMENT '用户主键id',
   `token` varchar(32) NOT NULL COMMENT 'token值(32位字符串)',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '修改时间',
@@ -42,9 +42,9 @@ CREATE TABLE `finops_admin_user_token` (
 -- ----------------------------
 -- 告警信息表
 -- ----------------------------
-DROP TABLE IF EXISTS `finops_alert`;
+DROP TABLE IF EXISTS `prometheus_alert`;
 
-CREATE TABLE `finops_alert` (
+CREATE TABLE `prometheus_alert` (
   `alert_id` int(11) NOT NULL AUTO_INCREMENT COMMENT '告警ID',
   `status` varchar(50) NOT NULL DEFAULT '' COMMENT '告警状态(firing/resolved)',
   `starts_at` datetime NOT NULL COMMENT '告警开始时间',

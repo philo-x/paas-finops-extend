@@ -2,49 +2,50 @@ package manage
 
 import (
 	"errors"
+	"strconv"
+	"strings"
+	"time"
+
 	"gorm.io/gorm"
 	"main.go/global"
 	"main.go/model/manage"
 	manageReq "main.go/model/manage/request"
 	"main.go/utils"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type ManageAdminUserService struct {
 }
 
-// CreateFinopsAdminUser 创建FinopsAdminUser记录
-func (m *ManageAdminUserService) CreateFinopsAdminUser(finopsAdminUser manage.FinopsAdminUser) (err error) {
-	if !errors.Is(global.GVA_DB.Where("login_user_name = ?", finopsAdminUser.LoginUserName).First(&manage.FinopsAdminUser{}).Error, gorm.ErrRecordNotFound) {
+// CreateadminUser 创建adminUser记录
+func (m *ManageAdminUserService) CreateAdminUser(adminUser manage.AdminUser) (err error) {
+	if !errors.Is(global.GVA_DB.Where("login_user_name = ?", adminUser.LoginUserName).First(&manage.AdminUser{}).Error, gorm.ErrRecordNotFound) {
 		return errors.New("存在相同用户名")
 	}
-	err = global.GVA_DB.Create(&finopsAdminUser).Error
+	err = global.GVA_DB.Create(&adminUser).Error
 	return err
 }
 
-// UpdateFinopsAdminName 更新FinopsAdminUser昵称
-func (m *ManageAdminUserService) UpdateFinopsAdminName(token string, req manageReq.FinopsUpdateNameParam) (err error) {
-	var adminUserToken manage.FinopsAdminUserToken
+// UpdateadminName 更新adminUser昵称
+func (m *ManageAdminUserService) UpdateAdminName(token string, req manageReq.UserNameUpdateParam) (err error) {
+	var adminUserToken manage.AdminUserToken
 	err = global.GVA_DB.Where("token =? ", token).First(&adminUserToken).Error
 	if err != nil {
 		return errors.New("不存在的用户")
 	}
-	err = global.GVA_DB.Where("admin_user_id = ?", adminUserToken.AdminUserId).Updates(&manage.FinopsAdminUser{
+	err = global.GVA_DB.Where("admin_user_id = ?", adminUserToken.AdminUserId).Updates(&manage.AdminUser{
 		LoginUserName: req.LoginUserName,
 		NickName:      req.NickName,
 	}).Error
 	return err
 }
 
-func (m *ManageAdminUserService) UpdateFinopsAdminPassWord(token string, req manageReq.FinopsUpdatePasswordParam) (err error) {
-	var adminUserToken manage.FinopsAdminUserToken
+func (m *ManageAdminUserService) UpdateAdminPassWord(token string, req manageReq.UserPasswordUpdateParam) (err error) {
+	var adminUserToken manage.AdminUserToken
 	err = global.GVA_DB.Where("token =? ", token).First(&adminUserToken).Error
 	if err != nil {
 		return errors.New("用户未登录")
 	}
-	var adminUser manage.FinopsAdminUser
+	var adminUser manage.AdminUser
 	err = global.GVA_DB.Where("admin_user_id =?", adminUserToken.AdminUserId).First(&adminUser).Error
 	if err != nil {
 		return errors.New("不存在的用户")
@@ -58,29 +59,29 @@ func (m *ManageAdminUserService) UpdateFinopsAdminPassWord(token string, req man
 	return
 }
 
-// GetFinopsAdminUser 根据id获取FinopsAdminUser记录
-func (m *ManageAdminUserService) GetFinopsAdminUser(token string) (err error, finopsAdminUser manage.FinopsAdminUser) {
-	var adminToken manage.FinopsAdminUserToken
+// GetadminUser 根据id获取adminUser记录
+func (m *ManageAdminUserService) GetAdminUser(token string) (err error, adminUser manage.AdminUser) {
+	var adminToken manage.AdminUserToken
 	if errors.Is(global.GVA_DB.Where("token =?", token).First(&adminToken).Error, gorm.ErrRecordNotFound) {
-		return errors.New("不存在的用户"), finopsAdminUser
+		return errors.New("不存在的用户"), adminUser
 	}
-	err = global.GVA_DB.Where("admin_user_id = ?", adminToken.AdminUserId).First(&finopsAdminUser).Error
-	return err, finopsAdminUser
+	err = global.GVA_DB.Where("admin_user_id = ?", adminToken.AdminUserId).First(&adminUser).Error
+	return err, adminUser
 }
 
 // AdminLogin 管理员登陆
-func (m *ManageAdminUserService) AdminLogin(params manageReq.FinopsAdminLoginParam) (err error, finopsAdminUser manage.FinopsAdminUser, adminToken manage.FinopsAdminUserToken) {
-	err = global.GVA_DB.Where("login_user_name=? AND login_password=?", params.UserName, params.PasswordMd5).First(&finopsAdminUser).Error
-	if finopsAdminUser != (manage.FinopsAdminUser{}) {
-		token := getNewToken(time.Now().UnixNano()/1e6, int(finopsAdminUser.AdminUserId))
-		global.GVA_DB.Where("admin_user_id", finopsAdminUser.AdminUserId).First(&adminToken)
+func (m *ManageAdminUserService) AdminLogin(params manageReq.AdminLoginParam) (err error, adminUser manage.AdminUser, adminToken manage.AdminUserToken) {
+	err = global.GVA_DB.Where("login_user_name=? AND login_password=?", params.UserName, params.PasswordMd5).First(&adminUser).Error
+	if adminUser != (manage.AdminUser{}) {
+		token := getNewToken(time.Now().UnixNano()/1e6, int(adminUser.AdminUserId))
+		global.GVA_DB.Where("admin_user_id", adminUser.AdminUserId).First(&adminToken)
 		nowDate := time.Now()
 		// 48小时过期
 		expireTime, _ := time.ParseDuration("48h")
 		expireDate := nowDate.Add(expireTime)
 		// 没有token新增，有token 则更新
-		if adminToken == (manage.FinopsAdminUserToken{}) {
-			adminToken.AdminUserId = finopsAdminUser.AdminUserId
+		if adminToken == (manage.AdminUserToken{}) {
+			adminToken.AdminUserId = adminUser.AdminUserId
 			adminToken.Token = token
 			adminToken.UpdateTime = nowDate
 			adminToken.ExpireTime = expireDate
@@ -96,7 +97,7 @@ func (m *ManageAdminUserService) AdminLogin(params manageReq.FinopsAdminLoginPar
 			}
 		}
 	}
-	return err, finopsAdminUser, adminToken
+	return err, adminUser, adminToken
 
 }
 

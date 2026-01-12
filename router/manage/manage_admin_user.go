@@ -10,18 +10,18 @@ type ManageAdminUserRouter struct {
 }
 
 func (r *ManageAdminUserRouter) InitManageAdminUserRouter(Router *gin.RouterGroup) {
-	finopsAdminUserRouter := Router.Group("v1").Use(middleware.AdminJWTAuth())
-	finopsAdminUserWithoutRouter := Router.Group("v1")
-	var finopsAdminUserApi = v1.ApiGroupApp.ManageApiGroup.ManageAdminUserApi
+	adminUserRouter := Router.Group("v1").Use(middleware.AdminJWTAuth())
+	adminUserWithoutRouter := Router.Group("v1")
+	var adminUserApi = v1.ApiGroupApp.ManageApiGroup.ManageAdminUserApi
 	{
-		finopsAdminUserRouter.POST("createFinopsAdminUser", finopsAdminUserApi.CreateAdminUser)
-		finopsAdminUserRouter.PUT("adminUser/name", finopsAdminUserApi.UpdateAdminUserName)
-		finopsAdminUserRouter.PUT("adminUser/password", finopsAdminUserApi.UpdateAdminUserPassword)
-		finopsAdminUserRouter.GET("adminUser/profile", finopsAdminUserApi.AdminUserProfile)
-		finopsAdminUserRouter.DELETE("logout", finopsAdminUserApi.AdminLogout)
-		finopsAdminUserRouter.POST("upload/file", finopsAdminUserApi.UploadFile)
+		adminUserRouter.POST("createadminUser", adminUserApi.CreateAdminUser)
+		adminUserRouter.PUT("adminUser/name", adminUserApi.UpdateAdminUserName)
+		adminUserRouter.PUT("adminUser/password", adminUserApi.UpdateAdminUserPassword)
+		adminUserRouter.GET("adminUser/profile", adminUserApi.AdminUserProfile)
+		adminUserRouter.DELETE("logout", adminUserApi.AdminLogout)
+		adminUserRouter.POST("upload/file", adminUserApi.UploadFile)
 	}
 	{
-		finopsAdminUserWithoutRouter.POST("adminUser/login", finopsAdminUserApi.AdminLogin)
+		adminUserWithoutRouter.POST("adminUser/login", adminUserApi.AdminLogin)
 	}
 }

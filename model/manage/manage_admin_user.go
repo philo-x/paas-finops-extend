@@ -1,7 +1,7 @@
 package manage
 
-// FinopsAdminUser 结构体
-type FinopsAdminUser struct {
+// AdminUser 结构体
+type AdminUser struct {
 	AdminUserId   int    `json:"adminUserId" form:"adminUserId" gorm:"primarykey;AUTO_INCREMENT"`
 	LoginUserName string `json:"loginUserName" form:"loginUserName" gorm:"column:login_user_name;comment:管理员登陆名称;type:varchar(50);"`
 	LoginPassword string `json:"loginPassword" form:"loginPassword" gorm:"column:login_password;comment:管理员登陆密码;type:varchar(50);"`
@@ -9,6 +9,6 @@ type FinopsAdminUser struct {
 	Locked        int    `json:"locked" form:"locked" gorm:"column:locked;comment:是否锁定 0未锁定 1已锁定无法登陆;type:tinyint"`
 }
 
-func (FinopsAdminUser) TableName() string {
-	return "finops_admin_user"
+func (AdminUser) TableName() string {
+	return "admin_user"
 }

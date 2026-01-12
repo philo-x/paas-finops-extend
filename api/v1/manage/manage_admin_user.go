@@ -16,18 +16,18 @@ type ManageAdminUserApi struct {
 
 // 创建AdminUser
 func (m *ManageAdminUserApi) CreateAdminUser(c *gin.Context) {
-	var params manageReq.FinopsAdminParam
+	var params manageReq.AdminParam
 	_ = c.ShouldBindJSON(&params)
 	if err := utils.Verify(params, utils.AdminUserRegisterVerify); err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	finopsAdminUser := manage.FinopsAdminUser{
+	adminUser := manage.AdminUser{
 		LoginUserName: params.LoginUserName,
 		NickName:      params.NickName,
 		LoginPassword: utils.MD5V([]byte(params.LoginPassword)),
 	}
-	if err := finopsAdminUserService.CreateFinopsAdminUser(finopsAdminUser); err != nil {
+	if err := adminUserService.CreateAdminUser(adminUser); err != nil {
 		global.GVA_LOG.Error("创建失败:", zap.Error(err))
 		response.FailWithMessage("创建失败"+err.Error(), c)
 	} else {
@@ -37,10 +37,10 @@ func (m *ManageAdminUserApi) CreateAdminUser(c *gin.Context) {
 
 // 修改密码
 func (m *ManageAdminUserApi) UpdateAdminUserPassword(c *gin.Context) {
-	var req manageReq.FinopsUpdatePasswordParam
+	var req manageReq.UserPasswordUpdateParam
 	_ = c.ShouldBindJSON(&req)
 	userToken := c.GetHeader("token")
-	if err := finopsAdminUserService.UpdateFinopsAdminPassWord(userToken, req); err != nil {
+	if err := adminUserService.UpdateAdminPassWord(userToken, req); err != nil {
 		global.GVA_LOG.Error("更新失败!", zap.Error(err))
 		response.FailWithMessage("更新失败:"+err.Error(), c)
 	} else {
@@ -51,10 +51,10 @@ func (m *ManageAdminUserApi) UpdateAdminUserPassword(c *gin.Context) {
 
 // 更新用户名
 func (m *ManageAdminUserApi) UpdateAdminUserName(c *gin.Context) {
-	var req manageReq.FinopsUpdateNameParam
+	var req manageReq.UserNameUpdateParam
 	_ = c.ShouldBindJSON(&req)
 	userToken := c.GetHeader("token")
-	if err := finopsAdminUserService.UpdateFinopsAdminName(userToken, req); err != nil {
+	if err := adminUserService.UpdateAdminName(userToken, req); err != nil {
 		global.GVA_LOG.Error("更新失败!", zap.Error(err))
 		response.FailWithMessage("更新失败", c)
 	} else {
@@ -65,20 +65,20 @@ func (m *ManageAdminUserApi) UpdateAdminUserName(c *gin.Context) {
 // AdminUserProfile 用id查询AdminUser
 func (m *ManageAdminUserApi) AdminUserProfile(c *gin.Context) {
 	adminToken := c.GetHeader("token")
-	if err, finopsAdminUser := finopsAdminUserService.GetFinopsAdminUser(adminToken); err != nil {
+	if err, adminUser := adminUserService.GetAdminUser(adminToken); err != nil {
 		global.GVA_LOG.Error("未查询到记录", zap.Error(err))
 		response.FailWithMessage("未查询到记录", c)
 	} else {
-		finopsAdminUser.LoginPassword = "******"
-		response.OkWithData(finopsAdminUser, c)
+		adminUser.LoginPassword = "******"
+		response.OkWithData(adminUser, c)
 	}
 }
 
 // AdminLogin 管理员登陆
 func (m *ManageAdminUserApi) AdminLogin(c *gin.Context) {
-	var adminLoginParams manageReq.FinopsAdminLoginParam
+	var adminLoginParams manageReq.AdminLoginParam
 	_ = c.ShouldBindJSON(&adminLoginParams)
-	if err, _, adminToken := finopsAdminUserService.AdminLogin(adminLoginParams); err != nil {
+	if err, _, adminToken := adminUserService.AdminLogin(adminLoginParams); err != nil {
 		response.FailWithMessage("登陆失败", c)
 	} else {
 		response.OkWithData(adminToken.Token, c)
@@ -88,7 +88,7 @@ func (m *ManageAdminUserApi) AdminLogin(c *gin.Context) {
 // AdminLogout 登出
 func (m *ManageAdminUserApi) AdminLogout(c *gin.Context) {
 	token := c.GetHeader("token")
-	if err := finopsAdminUserTokenService.DeleteFinopsAdminUserToken(token); err != nil {
+	if err := adminUserTokenService.DeleteAdminUserToken(token); err != nil {
 		response.FailWithMessage("登出失败", c)
 	} else {
 		response.OkWithMessage("登出成功", c)

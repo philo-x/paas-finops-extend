@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is **paas-finops-extend**, a Go + Gin implementation of a FinOps API backend with admin user management and alert functionality.
+This is **paas-finops-extend**, a Go + Gin implementation of a FinOps API backend with admin user management and observability (alerts) functionality.
 
 ## Build and Run Commands
 
@@ -19,7 +19,7 @@ go build -o server main.go
 go mod tidy -compat=1.17
 ```
 
-The server runs on port 8888 (configurable in `config.yaml`). Requires MySQL 5.7+ with schema from `/static-files/finops_schema.sql`.
+The server runs on port 8888 (configurable in `config.yaml`). Requires MySQL 5.7+ with schema from `/static-files/finops_extend_schema.sql`.
 
 ## Architecture
 
@@ -28,36 +28,49 @@ The server runs on port 8888 (configurable in `config.yaml`). Requires MySQL 5.7
 Routes (router/) → API Handlers (api/v1/) → Services (service/) → Models (model/) → GORM → MySQL
 ```
 
-**Key Directories:**
-- `api/v1/manage/` - Admin panel API handlers
-- `service/manage/` - Business logic layer
-- `model/manage/` - GORM models with request structs
-- `router/manage/` - Route registration
-- `middleware/` - JWT auth and CORS middleware
-- `initialize/` - Database and router initialization
-- `global/` - Global variables (GVA_DB, GVA_LOG, GVA_CONFIG)
+**Module Structure:**
+The codebase uses a group-based architecture with three modules: `manage`, `observe`, and `example`. Each module follows the same layered pattern:
 
-**API Group:**
-- `/manage-api/v1/` - Admin routes, protected by `AdminJWTAuth()`
+```
+api/v1/{module}/      → HTTP handlers
+service/{module}/     → Business logic
+model/{module}/       → GORM models + request/response structs
+router/{module}/      → Route registration
+```
 
-## Available APIs
+**Entry Points (enter.go files):**
+Each layer has an `enter.go` that aggregates module groups:
+- `service/enter.go` → `ServiceGroupApp` (contains ManageServiceGroup, ObserveServiceGroup, ExampleServiceGroup)
+- `router/enter.go` → `RouterGroupApp` (contains Manage, Observe router groups)
+- `api/v1/enter.go` → `ApiGroupApp` (contains ManageApiGroup, ObserveApiGroup)
 
-**Admin User:**
-- `POST /manage-api/v1/adminUser/login` - Admin login
-- `POST /manage-api/v1/createFinopsAdminUser` - Create admin user
-- `PUT /manage-api/v1/adminUser/name` - Update admin name
-- `PUT /manage-api/v1/adminUser/password` - Update password
-- `GET /manage-api/v1/adminUser/profile` - Get admin profile
-- `DELETE /manage-api/v1/logout` - Logout
-- `POST /manage-api/v1/upload/file` - Upload file
+**Global Variables:**
+- `global.GVA_DB` - GORM database instance
+- `global.GVA_LOG` - Zap logger
+- `global.GVA_CONFIG` - Viper configuration
 
-**Alerts:**
-- `POST /manage-api/v1/alerts` - Create alert
-- `GET /manage-api/v1/alerts` - Get alert list
-- `GET /manage-api/v1/alerts/:alertId` - Get alert by ID
-- `PUT /manage-api/v1/alerts/:alertId` - Update alert
-- `DELETE /manage-api/v1/alerts/:alertId` - Delete alert
-- `DELETE /manage-api/v1/alerts` - Batch delete alerts
+## API Routes
+
+**Base paths:**
+- `/api/manage/v1/` - Admin management routes
+- `/api/oberve/v1/` - Observability routes (alerts)
+
+**Admin User (`/api/manage/v1/`):**
+- `POST adminUser/login` - Admin login (public)
+- `POST createadminUser` - Create admin user (auth required)
+- `PUT adminUser/name` - Update admin name
+- `PUT adminUser/password` - Update password
+- `GET adminUser/profile` - Get admin profile
+- `DELETE logout` - Logout
+- `POST upload/file` - Upload file
+
+**Alerts (`/api/oberve/v1/`):**
+- `POST alerts` - Create alert
+- `GET alerts` - Get alert list
+- `GET alerts/:alertId` - Get alert by ID
+- `PUT alerts/:alertId` - Update alert
+- `DELETE alerts/:alertId` - Delete alert
+- `DELETE alerts` - Batch delete alerts
 
 ## Key Patterns
 
@@ -71,6 +84,7 @@ response.FailWithMessage("error", c)
 **Service Injection:**
 ```go
 var finopsAdminUserService = service.ServiceGroupApp.ManageServiceGroup.ManageAdminUserService
+var alertService = service.ServiceGroupApp.ObserveServiceGroup.ObserveAlertService
 ```
 
 **Model Definition:**
@@ -84,13 +98,21 @@ func (FinopsAdminUser) TableName() string {
 }
 ```
 
-**Database Access:**
-```go
-global.GVA_DB.Where("condition").First(&result)
-```
+**Adding a New Module:**
+1. Create `api/v1/{module}/enter.go` with API group struct
+2. Create `service/{module}/enter.go` with service group struct
+3. Create `model/{module}/` with GORM models
+4. Create `router/{module}/enter.go` with router group struct
+5. Register in parent `enter.go` files and `initialize/router.go`
+
+## Middleware
+
+- `middleware.AdminJWTAuth()` - JWT authentication for admin routes
+- `middleware.Cors()` - CORS handling
 
 ## Tech Stack
 
+- **Go:** 1.17
 - **Framework:** Gin v1.7.7
 - **ORM:** GORM v1.23.3
 - **Config:** Viper (config.yaml)
@@ -102,7 +124,3 @@ global.GVA_DB.Where("condition").First(&result)
 - `finops_admin_user` - Admin users
 - `finops_admin_user_token` - Admin tokens
 - `finops_alert` - Alerts
-
-## Test Credentials
-
-Admin panel: `admin` / `123456`

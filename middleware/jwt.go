@@ -25,7 +25,7 @@ func AdminJWTAuth() gin.HandlerFunc {
 		}
 		if time.Now().After(finopsAdminUserToken.ExpireTime) {
 			response.FailWithDetailed(nil, "授权已过期", c)
-			err = manageAdminUserTokenService.DeleteFinopsAdminUserToken(token)
+			err = manageAdminUserTokenService.DeleteAdminUserToken(token)
 			if err != nil {
 				return
 			}

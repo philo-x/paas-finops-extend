@@ -17,21 +17,29 @@ func Routers() *gin.Engine {
 	Router.Use(middleware.Cors())
 	global.GVA_LOG.Info("use middleware cors")
 
-	// 管理路由
-	manageRouter := router.RouterGroupApp.Manage
-	ManageGroup := Router.Group("manage-api")
+	// public 路由
 	PublicGroup := Router.Group("")
-
 	{
 		// 健康监测
 		PublicGroup.GET("/health", func(c *gin.Context) {
 			c.JSON(200, "ok")
 		})
 	}
+
+	// 管理路由
+	manageRouter := router.RouterGroupApp.Manage
+	ManageGroup := Router.Group("api/manage")
 	{
 		// 管理路由初始化
 		manageRouter.InitManageAdminUserRouter(ManageGroup)
-		manageRouter.InitManageAlertRouter(ManageGroup)
+	}
+
+	// 告警路由
+	observeRouter := router.RouterGroupApp.Observe
+	AlertGroup := Router.Group("api/oberve")
+	{
+		// 告警路由初始化
+		observeRouter.InitObserveAlertRouter(AlertGroup)
 	}
 
 	global.GVA_LOG.Info("router register success")

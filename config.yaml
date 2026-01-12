@@ -5,7 +5,7 @@ mysql:
   path: 127.0.0.1
   port: "3306"
   config: charset=utf8mb4&parseTime=True&loc=Local
-  db-name: finops_db
+  db-name: finops_extend
   username: root
   password: root@123
   max-idle-conns: 0
@@ -22,7 +22,7 @@ system:
 zap:
   level: info
   format: console
-  prefix: '[finops]'
+  prefix: '[finops_extend]'
   director: log
   showLine: true
   encode-level: LowercaseColorLevelEncoder
