@@ -1,0 +1,24 @@
+[newbee_mall]2026/01/09 - 17:05:24.911	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:15	use middleware logger
+[newbee_mall]2026/01/09 - 17:05:24.911	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:18	use middleware cors
+[newbee_mall]2026/01/09 - 17:05:24.912	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:54	router register success
+[newbee_mall]2026/01/09 - 17:05:24.912	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/core/server.go:24	server run success on 	{"address": ":8888"}
+[newbee_mall]2026/01/09 - 17:06:01.203	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:15	use middleware logger
+[newbee_mall]2026/01/09 - 17:06:01.204	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:18	use middleware cors
+[newbee_mall]2026/01/09 - 17:06:01.204	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:54	router register success
+[newbee_mall]2026/01/09 - 17:06:01.204	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/core/server.go:24	server run success on 	{"address": ":8888"}
+[newbee_mall]2026/01/09 - 17:16:17.271	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:15	use middleware logger
+[newbee_mall]2026/01/09 - 17:16:17.272	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:18	use middleware cors
+[newbee_mall]2026/01/09 - 17:16:17.272	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:54	router register success
+[newbee_mall]2026/01/09 - 17:16:17.272	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/core/server.go:24	server run success on 	{"address": ":8888"}
+[newbee_mall]2026/01/09 - 17:17:33.895	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:15	use middleware logger
+[newbee_mall]2026/01/09 - 17:17:33.895	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:18	use middleware cors
+[newbee_mall]2026/01/09 - 17:17:33.896	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:54	router register success
+[newbee_mall]2026/01/09 - 17:17:33.896	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/core/server.go:24	server run success on 	{"address": ":8888"}
+[newbee_mall]2026/01/09 - 17:18:19.572	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:15	use middleware logger
+[newbee_mall]2026/01/09 - 17:18:19.573	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:18	use middleware cors
+[newbee_mall]2026/01/09 - 17:18:19.573	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:54	router register success
+[newbee_mall]2026/01/09 - 17:18:19.573	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/core/server.go:24	server run success on 	{"address": ":8888"}
+[newbee_mall]2026/01/09 - 17:23:47.243	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:15	use middleware logger
+[newbee_mall]2026/01/09 - 17:23:47.244	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:18	use middleware cors
+[newbee_mall]2026/01/09 - 17:23:47.244	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/initialize/router.go:54	router register success
+[newbee_mall]2026/01/09 - 17:23:47.244	[34minfo[0m	/Users/xuuyin/Dev/GolandProjects/newbee-mall-api-go-main/core/server.go:24	server run success on 	{"address": ":8888"}
