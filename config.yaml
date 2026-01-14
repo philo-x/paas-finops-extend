@@ -13,7 +13,7 @@ mysql:
   log-mode: ""
   log-zap: false
 system:
-  addr: 8888
+  addr: 0.0.0.0:8888
   db-type: mysql
   oss-type: local
   use-multipoint: false
