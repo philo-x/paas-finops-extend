@@ -1,0 +1,22 @@
+## 消息格式错误
+{
+  "topic" : "PAAS-OBSERVE",
+  "tag" : "prometheus-alert",
+  "data" : {
+    "邮件主题" : "【告警中】PAAS 平台告警：节点100.115.100.76的节点的僵尸进程数",
+    "告警详情" : {
+      "告警状态" : "告警中",
+      "告警等级" : "严重",
+      "告警集群" : "devops",
+      "告警对象" : "节点100.115.100.76",
+      "策略名称" : "cpaas-node-rules",
+      "告警描述" : "{\"zh\":\"节点(100.115.100.76)僵尸进程数超过了 .externalLabels.threshold \",\"en\":\"Node(100.115.100.76) has more zombie processes than  .externalLabels.threshold \"}}",
+      "触发数值" : "11",
+      "告警时间" : "2026-01-13 09:20:34"
+    }
+  }
+}
+
+## 原生http能换一下？
+
+## mode 内容太杂了，能否抽离一下？

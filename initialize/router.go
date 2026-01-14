@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"main.go/global"
 	"main.go/middleware"
 	"main.go/router"
@@ -23,6 +24,28 @@ func Routers() *gin.Engine {
 		// 健康监测
 		PublicGroup.GET("/health", func(c *gin.Context) {
 			c.JSON(200, "ok")
+		})
+		// 测试端点 - 打印完整HTTP请求
+		PublicGroup.POST("/api/test", func(c *gin.Context) {
+			global.GVA_LOG.Info("=== HTTP Request ===",
+				zap.String("method", c.Request.Method),
+				zap.String("url", c.Request.URL.String()),
+				zap.String("proto", c.Request.Proto),
+				zap.String("host", c.Request.Host),
+				zap.String("remoteAddr", c.Request.RemoteAddr),
+			)
+			for key, values := range c.Request.Header {
+				for _, value := range values {
+					global.GVA_LOG.Info("Header", zap.String(key, value))
+				}
+			}
+			global.GVA_LOG.Info("Query", zap.String("rawQuery", c.Request.URL.RawQuery))
+
+			// 读取并记录请求体
+			bodyBytes, _ := c.GetRawData()
+			global.GVA_LOG.Info("Body", zap.String("content", string(bodyBytes)))
+
+			c.JSON(200, gin.H{"message": "ok"})
 		})
 	}
 

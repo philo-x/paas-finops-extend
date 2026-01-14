@@ -3,6 +3,7 @@ package observe
 import (
 	"time"
 
+	"go.uber.org/zap"
 	"main.go/global"
 	"main.go/model/common"
 	"main.go/model/common/request"
@@ -29,8 +30,8 @@ func (m *ObserveAlertService) CreateAlert(req observe.AlertRequest) (err error, 
 
 	alert = observe.PrometheusAlert{
 		Status:      req.Status,
-		StartsAt:    startsAt,
-		EndsAt:      endsAt,
+		StartsAt:    &observe.NullTime{Time: &startsAt},
+		EndsAt:      &observe.NullTime{Time: &endsAt},
 		Annotations: req.Annotations,
 		Labels:      req.Labels,
 		IsDeleted:   0,
@@ -39,6 +40,20 @@ func (m *ObserveAlertService) CreateAlert(req observe.AlertRequest) (err error, 
 	}
 
 	err = global.GVA_DB.Create(&alert).Error
+	if err != nil {
+		return err, alert
+	}
+
+	// 异步发送MQ通知(失败仅记录日志，不影响主流程)
+	go func() {
+		mqService := MQClientService{}
+		if sendErr := mqService.SendAlertNotification(alert); sendErr != nil {
+			global.GVA_LOG.Error("MQ通知发送失败", zap.Error(sendErr), zap.Int("alertId", alert.AlertId))
+		} else {
+			global.GVA_LOG.Info("MQ通知发送成功", zap.Int("alertId", alert.AlertId))
+		}
+	}()
+
 	return err, alert
 }
 

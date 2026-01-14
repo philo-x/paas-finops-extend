@@ -17,8 +17,10 @@ type AlertNotification struct {
 
 // AlertAnnotations 告警注解
 type AlertAnnotations struct {
-	AlertCurrentValue  string              `json:"alert_current_value"`
-	AlertNotifications []AlertNotification `json:"alert_notifications"`
+	AlertCurrentValue  string `json:"alert_current_value"`
+	AlertNotifications string `json:"alert_notifications"` // JSON字符串格式
+	DisplayName        string `json:"display_name"`        // JSON字符串 {"zh":"...", "en":"..."}
+	Summary            string `json:"summary"`             // JSON字符串 {"zh":"...", "en":"..."}
 }
 
 // Value 实现 driver.Valuer 接口
@@ -40,13 +42,21 @@ type AlertLabels struct {
 	AlertCluster                 string `json:"alert_cluster"`
 	AlertIndicator               string `json:"alert_indicator"`
 	AlertIndicatorAggregateRange string `json:"alert_indicator_aggregate_range"`
+	AlertIndicatorAlias          string `json:"alert_indicator_alias"`
 	AlertIndicatorComparison     string `json:"alert_indicator_comparison"`
 	AlertIndicatorThreshold      string `json:"alert_indicator_threshold"`
 	AlertInvolvedObjectKind      string `json:"alert_involved_object_kind"`
 	AlertInvolvedObjectName      string `json:"alert_involved_object_name"`
+	AlertInvolvedObjectOptions   string `json:"alert_involved_object_options"`
+	AlertKind                    string `json:"alert_kind"`
 	AlertName                    string `json:"alert_name"`
+	AlertNamespace               string `json:"alert_namespace"`
+	AlertProject                 string `json:"alert_project"`
 	AlertResource                string `json:"alert_resource"`
-	AlertName2                   string `json:"alertname"`
+	AlertSource                  string `json:"alert_source"`
+	Alertname                    string `json:"alertname"`
+	DisplayName                  string `json:"display_name"`
+	NodeName                     string `json:"node_name"`
 	Severity                     string `json:"severity"`
 }
 
@@ -64,12 +74,33 @@ func (l *AlertLabels) Scan(value interface{}) error {
 	return json.Unmarshal(bytes, l)
 }
 
+type NullTime struct {
+	*time.Time
+}
+
+// Value 实现 driver.Valuer 接口，写入数据库前调用
+func (nt NullTime) Value() (driver.Value, error) {
+	if nt.Time == nil || nt.Time.IsZero() {
+		return nil, nil // 如果是 0001-01-01，存入数据库为 NULL
+	}
+	return *nt.Time, nil
+}
+
+// Scan 实现 sql.Scanner 接口，从数据库读取时调用
+func (nt *NullTime) Scan(v interface{}) error {
+	t, ok := v.(time.Time)
+	if ok {
+		nt.Time = &t
+	}
+	return nil
+}
+
 // PrometheusAlert 告警信息模型
 type PrometheusAlert struct {
 	AlertId     int              `json:"alertId" form:"alertId" gorm:"primarykey;AUTO_INCREMENT"`
 	Status      string           `json:"status" form:"status" gorm:"column:status;comment:告警状态;type:varchar(50);"`
-	StartsAt    time.Time        `json:"startsAt" form:"startsAt" gorm:"column:starts_at;comment:告警开始时间;type:datetime;"`
-	EndsAt      time.Time        `json:"endsAt" form:"endsAt" gorm:"column:ends_at;comment:告警结束时间;type:datetime;"`
+	StartsAt    *NullTime        `json:"startsAt" form:"startsAt" gorm:"column:starts_at;comment:告警开始时间;type:datetime;"`
+	EndsAt      *NullTime        `json:"endsAt" form:"endsAt" gorm:"column:ends_at;comment:告警结束时间;type:datetime;"`
 	Annotations AlertAnnotations `json:"annotations" form:"annotations" gorm:"column:annotations;comment:告警注解;type:json;"`
 	Labels      AlertLabels      `json:"labels" form:"labels" gorm:"column:labels;comment:告警标签;type:json;"`
 	IsDeleted   int              `json:"isDeleted" form:"isDeleted" gorm:"column:is_deleted;comment:删除标识字段(0-未删除 1-已删除);type:tinyint;default:0"`

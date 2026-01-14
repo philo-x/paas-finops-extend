@@ -16,7 +16,11 @@ go build -o server main.go
 ./server
 
 # Dependencies
-go mod tidy -compat=1.17
+go mod tidy
+
+# Docker build and run
+docker build -t paas-finops-extend .
+docker run -p 8888:8888 paas-finops-extend
 ```
 
 The server runs on port 8888 (configurable in `config.yaml`). Requires MySQL 5.7+ with schema from `/static-files/finops_extend_schema.sql`.
@@ -52,10 +56,10 @@ Each layer has an `enter.go` that aggregates module groups:
 ## API Routes
 
 **Base paths:**
-- `/api/manage/v1/` - Admin management routes
-- `/api/observe/v1/` - Observability routes (alerts)
+- `/api/v1/manage/` - Admin management routes
+- `/api/v1/observe/` - Observability routes (alerts)
 
-**Admin User (`/api/manage/v1/`):**
+**Admin User (`/api/v1/manage/`):**
 - `POST adminUser/login` - Admin login (public)
 - `POST createadminUser` - Create admin user (auth required)
 - `PUT adminUser/name` - Update admin name
@@ -64,7 +68,7 @@ Each layer has an `enter.go` that aggregates module groups:
 - `DELETE logout` - Logout
 - `POST upload/file` - Upload file
 
-**Alerts (`/api/observe/v1/`):**
+**Alerts (`/api/v1/observe/`):**
 - `POST alerts` - Create alert
 - `GET alerts` - Get alert list
 - `GET alerts/:alertId` - Get alert by ID
@@ -112,9 +116,9 @@ func (AdminUser) TableName() string {
 
 ## Tech Stack
 
-- **Go:** 1.17
-- **Framework:** Gin v1.7.7
-- **ORM:** GORM v1.23.3
+- **Go:** 1.24
+- **Framework:** Gin v1.11
+- **ORM:** GORM v1.31
 - **Config:** Viper (config.yaml)
 - **Logging:** Uber Zap (logs to /log/ directory)
 - **Database:** MySQL 5.7+

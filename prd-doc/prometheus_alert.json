@@ -1,0 +1,32 @@
+{
+  "annotations": {
+    "alert_current_value": "11",
+    "alert_notifications": "[\"cpaas-admin-notification\",\"alert-test\"]",
+    "display_name": "{\"zh\":\"节点的僵尸进程数\",\"en\":\"Node zombie process count\"}",
+    "summary": "{\"zh\":\"节点(100.115.100.76)僵尸进程数超过了 .externalLabels.threshold \",\"en\":\"Node(100.115.100.76) has more zombie processes than  .externalLabels.threshold \"}}"
+  },
+  "endsAt": "0001-01-01T00:00:00Z",
+  "labels": {
+    "alert_cluster": "devops",
+    "alert_indicator": "custom",
+    "alert_indicator_aggregate_range": "0",
+    "alert_indicator_alias": "custom.node.zombie.processors",
+    "alert_indicator_comparison": ">",
+    "alert_indicator_threshold": "5",
+    "alert_involved_object_kind": "Node",
+    "alert_involved_object_name": "100.115.100.76",
+    "alert_involved_object_options": "Any",
+    "alert_kind": "resource",
+    "alert_name": "custom-xfd86",
+    "alert_namespace": "cpaas-system",
+    "alert_project": "cpaas-system",
+    "alert_resource": "cpaas-node-rules",
+    "alert_source": "Platform",
+    "alertname": "custom-xfd86-68edadefa4d24785a261f6cd2e22338c",
+    "display_name": "{\"zh\":\"节点的僵尸进程数\",\"en\":\"Node zombie process count\"}",
+    "node_name": "100.115.100.76",
+    "severity": "High"
+  },
+  "startsAt": "2026-01-13T09:20:34.373Z",
+  "status": "firing"
+}
