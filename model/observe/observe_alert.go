@@ -4,16 +4,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
-	"time"
 
 	"main.go/model/common"
 )
-
-// AlertNotification 告警通知
-type AlertNotification struct {
-	Namespace string `json:"namespace"`
-	Name      string `json:"name"`
-}
 
 // AlertAnnotations 告警注解
 type AlertAnnotations struct {
@@ -74,27 +67,6 @@ func (l *AlertLabels) Scan(value interface{}) error {
 	return json.Unmarshal(bytes, l)
 }
 
-type NullTime struct {
-	*time.Time
-}
-
-// Value 实现 driver.Valuer 接口，写入数据库前调用
-func (nt NullTime) Value() (driver.Value, error) {
-	if nt.Time == nil || nt.Time.IsZero() {
-		return nil, nil // 如果是 0001-01-01，存入数据库为 NULL
-	}
-	return *nt.Time, nil
-}
-
-// Scan 实现 sql.Scanner 接口，从数据库读取时调用
-func (nt *NullTime) Scan(v interface{}) error {
-	t, ok := v.(time.Time)
-	if ok {
-		nt.Time = &t
-	}
-	return nil
-}
-
 // PrometheusAlert 告警信息模型
 type PrometheusAlert struct {
 	AlertId     int              `json:"alertId" form:"alertId" gorm:"primarykey;AUTO_INCREMENT"`
@@ -111,13 +83,4 @@ type PrometheusAlert struct {
 // TableName PrometheusAlert 表名
 func (PrometheusAlert) TableName() string {
 	return "prometheus_alert"
-}
-
-// AlertRequest 创建/更新告警请求结构
-type AlertRequest struct {
-	Status      string           `json:"status" binding:"required"`
-	StartsAt    string           `json:"startsAt" binding:"required"`
-	EndsAt      string           `json:"endsAt"`
-	Annotations AlertAnnotations `json:"annotations"`
-	Labels      AlertLabels      `json:"labels"`
 }

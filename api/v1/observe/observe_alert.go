@@ -8,7 +8,7 @@ import (
 	"main.go/global"
 	"main.go/model/common/request"
 	"main.go/model/common/response"
-	"main.go/model/observe"
+	observe "main.go/model/observe"
 )
 
 type ObserveAlertApi struct {

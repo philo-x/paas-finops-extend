@@ -1,0 +1,35 @@
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Git
+.git/
+.gitignore
+
+# Build artifacts
+server
+*.exe
+*.test
+*.out
+
+# Logs
+log/
+*.log
+
+# Vendor (will be downloaded during build)
+vendor/
+
+# Documentation
+*.md
+LICENSE
+CLAUDE.md
+
+# Static files uploaded by users (optional, remove if you need to include)
+static/uploads/
+
+# Misc
+.DS_Store
+Thumbs.db
+.env
+.env.*
