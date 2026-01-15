@@ -44,6 +44,8 @@ func (s *MQClientService) SendAlertNotification(alert observe.PrometheusAlert) e
 		return fmt.Errorf("序列化MQ消息失败: %w", err)
 	}
 
+	global.GVA_LOG.Info("MQ消息序列化完成", zap.String("jsonData", string(jsonData)))
+
 	resp, err := mqHTTPClient.Post(global.GVA_CONFIG.MQ.Url, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return fmt.Errorf("发送MQ请求失败: %w", err)
