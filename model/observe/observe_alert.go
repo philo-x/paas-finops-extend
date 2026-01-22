@@ -11,10 +11,10 @@ import (
 
 // AlertAnnotations 告警注解
 type AlertAnnotations struct {
-	AlertCurrentValue  string `json:"alert_current_value"`
-	AlertNotifications string `json:"alert_notifications"` // JSON字符串格式
-	DisplayName        string `json:"display_name"`        // JSON字符串 {"zh":"...", "en":"..."}
-	Summary            string `json:"summary"`             // JSON字符串 {"zh":"...", "en":"..."}
+	AlertCurrentValue  string   `json:"alert_current_value"`
+	AlertNotifications []string `json:"alert_notifications"` // 通知目标列表
+	DisplayName        string   `json:"display_name"`        // JSON字符串 {"zh":"...", "en":"..."}
+	Summary            string   `json:"summary"`             // JSON字符串 {"zh":"...", "en":"..."}
 }
 
 // Value 实现 driver.Valuer 接口
@@ -80,6 +80,7 @@ type PrometheusAlert struct {
 	AlertCount       int              `json:"alertCount" form:"alertCount" gorm:"column:alert_count;comment:累计告警次数;type:int;default:1"`
 	DailyNotifyCount int              `json:"dailyNotifyCount" form:"dailyNotifyCount" gorm:"column:daily_notify_count;comment:当日通知次数;type:int;default:0"`
 	LastNotifyDate   *time.Time       `json:"lastNotifyDate" form:"lastNotifyDate" gorm:"column:last_notify_date;comment:最后通知日期;type:date;"`
+	NotifyPending    bool             `json:"notifyPending" form:"notifyPending" gorm:"column:notify_pending;comment:是否有待发送的通知;type:tinyint(1);default:0"`
 	IsDeleted        int              `json:"isDeleted" form:"isDeleted" gorm:"column:is_deleted;comment:删除标识字段(0-未删除 1-已删除);type:tinyint;default:0"`
 	CreateTime       common.JSONTime  `json:"createTime" form:"createTime" gorm:"column:create_time;comment:创建时间;type:datetime;"`
 	UpdateTime       common.JSONTime  `json:"updateTime" form:"updateTime" gorm:"column:update_time;comment:最新修改时间;type:datetime;"`

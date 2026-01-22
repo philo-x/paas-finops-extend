@@ -55,6 +55,7 @@ CREATE TABLE `prometheus_alert` (
   `alert_count` int(11) NOT NULL DEFAULT 1 COMMENT '累计告警次数',
   `daily_notify_count` int(11) NOT NULL DEFAULT 0 COMMENT '当日通知次数',
   `last_notify_date` date DEFAULT NULL COMMENT '最后通知日期',
+  `notify_pending` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否有待发送的通知',
   `is_deleted` tinyint(4) NOT NULL DEFAULT '0' COMMENT '删除标识字段(0-未删除 1-已删除)',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
@@ -91,5 +92,11 @@ CREATE TABLE `exa_file_upload_and_downloads` (
 -- ADD COLUMN `daily_notify_count` int(11) NOT NULL DEFAULT 0 COMMENT '当日通知次数' AFTER `alert_count`,
 -- ADD COLUMN `last_notify_date` date DEFAULT NULL COMMENT '最后通知日期' AFTER `daily_notify_count`,
 -- ADD INDEX `idx_fingerprint` (`fingerprint`);
+
+-- ----------------------------
+-- 通知重试字段 (用于已存在的数据库升级)
+-- ----------------------------
+-- ALTER TABLE `prometheus_alert`
+-- ADD COLUMN `notify_pending` tinyint(1) NOT NULL DEFAULT 0 COMMENT '是否有待发送的通知' AFTER `last_notify_date`;
 
 SET FOREIGN_KEY_CHECKS = 1;

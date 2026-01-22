@@ -35,7 +35,6 @@ func (m *ObserveAlertService) CreateAlert(req observe.AlertRequest) (err error, 
 
 	isResolved := req.Status == "resolved"
 	shouldNotify := false
-	today := time.Now().Truncate(24 * time.Hour)
 
 	// 查找是否存在相同指纹的活跃告警
 	existingAlert, findErr := dedupService.FindActiveAlertByFingerprint(fingerprint)
@@ -55,8 +54,8 @@ func (m *ObserveAlertService) CreateAlert(req observe.AlertRequest) (err error, 
 		// 判断是否需要发送通知
 		shouldNotify = dedupService.ShouldSendNotification(existingAlert, isResolved)
 
-		if shouldNotify && !isResolved {
-			// firing状态且需要发送通知，更新通知计数
+		if shouldNotify {
+			// 需要发送通知，设置NotifyPending=true(不直接增加DailyNotifyCount)
 			dedupService.UpdateNotifyCount(existingAlert)
 		}
 
@@ -77,8 +76,9 @@ func (m *ObserveAlertService) CreateAlert(req observe.AlertRequest) (err error, 
 			Labels:           req.Labels,
 			Fingerprint:      fingerprint,
 			AlertCount:       1,
-			DailyNotifyCount: 1,
-			LastNotifyDate:   &today,
+			DailyNotifyCount: 0,    // 初始化为0,发送成功后再增加
+			NotifyPending:    true, // 标记为待发送
+			LastNotifyDate:   nil,  // 发送成功后再设置
 			IsDeleted:        0,
 			CreateTime:       common.JSONTime{Time: time.Now()},
 			UpdateTime:       common.JSONTime{Time: time.Now()},
@@ -99,14 +99,19 @@ func (m *ObserveAlertService) CreateAlert(req observe.AlertRequest) (err error, 
 
 	// 异步发送MQ通知(失败仅记录日志，不影响主流程)
 	if shouldNotify {
-		go func() {
+		go func(alertId int) {
 			mqService := MQClientService{}
 			if sendErr := mqService.SendAlertNotification(alert); sendErr != nil {
-				global.GVA_LOG.Error("MQ通知发送失败", zap.Error(sendErr), zap.Int("alertId", alert.AlertId))
+				global.GVA_LOG.Error("MQ通知发送失败(NotifyPending保持true,下次将重试)", zap.Error(sendErr), zap.Int("alertId", alertId))
 			} else {
-				global.GVA_LOG.Info("MQ通知发送成功", zap.Int("alertId", alert.AlertId))
+				// 发送成功，确认通知已发送(清除NotifyPending并增加DailyNotifyCount)
+				if confirmErr := dedupService.ConfirmNotifySent(alertId); confirmErr != nil {
+					global.GVA_LOG.Error("确认通知发送状态失败", zap.Error(confirmErr), zap.Int("alertId", alertId))
+				} else {
+					global.GVA_LOG.Info("MQ通知发送成功", zap.Int("alertId", alertId))
+				}
 			}
-		}()
+		}(alert.AlertId)
 	} else {
 		global.GVA_LOG.Info("跳过MQ通知(已达每日限制)",
 			zap.Int("alertId", alert.AlertId),
