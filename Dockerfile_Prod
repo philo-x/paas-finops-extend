@@ -16,26 +16,22 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
 FROM dev-apaas-harbor-app.mis.bcs/kylin_base_images/kylin-server-v10-sp1-aarch64:base
 WORKDIR /app
 
-# 1. 创建运维指定的专用用户和组
-# 这里假设 UID/GID 遵循公司标准（通常也是 1000 或特定值，此处仅作演示，可根据运维要求调整）
-RUN groupadd -g 1000 bcsappadmin && \
-    useradd -r -u 1000 -g bcsappadmin -s /sbin/nologin bcsappadmin
 
-# 2. 预先创建日志目录并授权
+# 1. 预先创建日志目录并授权
 # 确保在切换用户前完成，解决 mkdir log permission denied 问题
 RUN mkdir -p /app/log && \
-    chown -R bcsappadmin:bcsappadmin /app && \
+    chown -R 1000:1000 /app && \
     chmod -R 755 /app
 
-# 3. 复制文件并指定所有权
-COPY --from=builder --chown=bcsappadmin:bcsappadmin /build/server .
-COPY --chown=bcsappadmin:bcsappadmin config.yaml .
+# 2. 复制文件并指定所有权
+COPY --from=builder --chown=1000:1000 /build/server .
+COPY --chown=1000:1000 config.yaml .
 
 # 设置时区
 ENV TZ=Asia/Shanghai
 
-# 4. 切换到运维建议的用户
-USER bcsappadmin
+# 3. 切换到运维建议的用户
+USER 1000:1000
 
 EXPOSE 8888
 
