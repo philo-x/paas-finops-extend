@@ -1,0 +1,19 @@
+{
+  "topic": "PAAS-OBSERVE",
+  "tag": "prometheus-alert",
+  "data": {
+    "title": "【告警中】PAAS 平台告警：节点100.115.100.79的僵尸进程数>5",
+    "receiver": "15146,13418",
+    "detail": {
+      "status": "告警中",
+      "severity": "严重",
+      "cluster": "devops",
+      "object": "节点100.115.100.79",
+      "indicator": "cpaas-node-rules",
+      "summary": "节点100.115.100.79的僵尸进程数>5",
+      "triggerValue": "11",
+      "alertTime": "2026-01-21 08:56:04",
+      "remark": "xxx"
+    }
+  }
+}

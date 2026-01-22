@@ -33,3 +33,4 @@ mq:
   topic: "PAAS-OBSERVE"
   tag: "prometheus-alert"
   timeout: 10
+  receiver: "13418,15146"
