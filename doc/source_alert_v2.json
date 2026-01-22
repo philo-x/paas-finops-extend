@@ -1,0 +1,28 @@
+{
+  "annotations": {
+    "alert_current_value": "13.68421052631579",
+    "alert_notifications": "[\"alert-test\",\"test\",\"test-info-platform\"]",
+    "display_name": "近10分钟内Jenkins告警次数"
+  },
+  "endsAt": "2026-01-22T14:07:53.731Z",
+  "labels": {
+    "alert_cluster": "devops",
+    "alert_indicator": "custom",
+    "alert_indicator_aggregate_range": "0",
+    "alert_indicator_comparison": ">",
+    "alert_indicator_threshold": "1",
+    "alert_involved_object_kind": "Cluster",
+    "alert_involved_object_name": "devops",
+    "alert_kind": "resource",
+    "alert_name": "custom-f4v0a",
+    "alert_namespace": "cpaas-system",
+    "alert_project": "cpaas-system",
+    "alert_resource": "test-jenkins",
+    "alert_source": "Platform",
+    "alertname": "custom-f4v0a-05f8858a8534aab5c0b8da0c193b6970",
+    "display_name": "近10分钟内Jenkins告警次数",
+    "severity": "Critical"
+  },
+  "startsAt": "2026-01-22T13:58:53.731Z",
+  "status": "resolved"
+}

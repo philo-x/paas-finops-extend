@@ -1,0 +1,32 @@
+{
+  "annotations": {
+    "alert_current_value": "2.07",
+    "alert_notifications": "[\"cpaas-admin-notification\",\"alert-test\"]"
+  },
+  "endsAt": "2026-01-22T14:08:39.314Z",
+  "labels": {
+    "alert_cluster": "tsf-cluster-evj4e5lv",
+    "alert_indicator": "node.load.5.per.core",
+    "alert_indicator_aggregate_range": "0",
+    "alert_indicator_comparison": ">",
+    "alert_indicator_threshold": "2",
+    "alert_involved_object_kind": "Node",
+    "alert_involved_object_name": "100.115.100.99",
+    "alert_involved_object_options": "Any",
+    "alert_kind": "resource",
+    "alert_name": "node.load.5.per.core-8cop3",
+    "alert_namespace": "cpaas-system",
+    "alert_project": "cpaas-system",
+    "alert_resource": "cpaas-node-rules",
+    "alert_source": "Platform",
+    "alertname": "node.load.5.per.core-8cop3-0806f1b01a0addfe33658a7b051860a8",
+    "host_ip": "100.115.100.99",
+    "instance": "100.115.100.99:9100",
+    "ip": "100.115.100.99",
+    "node": "100.115.100.99",
+    "node_name": "100.115.100.99",
+    "severity": "Low"
+  },
+  "startsAt": "2026-01-22T13:10:39.314Z",
+  "status": "resolved"
+}

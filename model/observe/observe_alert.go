@@ -11,10 +11,10 @@ import (
 
 // AlertAnnotations 告警注解
 type AlertAnnotations struct {
-	AlertCurrentValue  string   `json:"alert_current_value"`
-	AlertNotifications []string `json:"alert_notifications"` // 通知目标列表
-	DisplayName        string   `json:"display_name"`        // JSON字符串 {"zh":"...", "en":"..."}
-	Summary            string   `json:"summary"`             // JSON字符串 {"zh":"...", "en":"..."}
+	AlertCurrentValue  string `json:"alert_current_value"`
+	AlertNotifications string `json:"alert_notifications"` // JSON数组字符串 "[\"target1\",\"target2\"]"
+	DisplayName        string `json:"display_name"`        // JSON字符串 {"zh":"...", "en":"..."}
+	Summary            string `json:"summary"`             // JSON字符串 {"zh":"...", "en":"..."}
 }
 
 // Value 实现 driver.Valuer 接口
@@ -52,6 +52,14 @@ type AlertLabels struct {
 	DisplayName                  string `json:"display_name"`
 	NodeName                     string `json:"node_name"`
 	Severity                     string `json:"severity"`
+	// 新增字段 - 兼容多种数据源格式
+	HostIP             string `json:"host_ip"`
+	Instance           string `json:"instance"`
+	IP                 string `json:"ip"`
+	Node               string `json:"node"`
+	Device             string `json:"device"`
+	Mountpoint         string `json:"mountpoint"`
+	AlertIndicatorUnit string `json:"alert_indicator_unit"`
 }
 
 // Value 实现 driver.Valuer 接口

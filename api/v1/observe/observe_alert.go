@@ -1,6 +1,8 @@
 package observe
 
 import (
+	"bytes"
+	"io"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -16,9 +18,33 @@ type ObserveAlertApi struct {
 
 // CreateAlert 创建告警
 func (m *ObserveAlertApi) CreateAlert(c *gin.Context) {
+	// 先读取请求体用于日志记录
+	bodyBytes, _ := io.ReadAll(c.Request.Body)
+	// 恢复请求体以便后续绑定
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
 	var req observe.AlertRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		global.GVA_LOG.Error("参数绑定失败!", zap.Error(err))
+		// 打印完整HTTP请求信息
+		global.GVA_LOG.Error("=== CreateAlert 参数绑定失败 ===",
+			zap.Error(err),
+			zap.String("method", c.Request.Method),
+			zap.String("url", c.Request.URL.String()),
+			zap.String("proto", c.Request.Proto),
+			zap.String("host", c.Request.Host),
+			zap.String("remoteAddr", c.Request.RemoteAddr),
+		)
+		// 打印所有 Headers
+		for key, values := range c.Request.Header {
+			for _, value := range values {
+				global.GVA_LOG.Error("Header", zap.String(key, value))
+			}
+		}
+		// 打印 Query 参数
+		global.GVA_LOG.Error("Query", zap.String("rawQuery", c.Request.URL.RawQuery))
+		// 打印请求体
+		global.GVA_LOG.Error("Body", zap.String("content", string(bodyBytes)))
+
 		response.FailWithMessage("参数错误: "+err.Error(), c)
 		return
 	}

@@ -124,10 +124,14 @@ func (s *MQClientService) mapStatus(status string) string {
 // mapSeverity 等级映射
 func (s *MQClientService) mapSeverity(severity string) string {
 	switch severity {
+	case "Critical":
+		return "紧急"
 	case "High":
 		return "严重"
 	case "Warning":
 		return "警告"
+	case "Low":
+		return "轻微"
 	default:
 		return "一般"
 	}

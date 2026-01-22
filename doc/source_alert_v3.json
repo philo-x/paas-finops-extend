@@ -1,0 +1,35 @@
+{
+  "annotations": {
+    "alert_current_value": "0.8362948827552515",
+    "alert_notifications": "[\"cpaas-admin-notification\",\"alert-test\"]"
+  },
+  "endsAt": "0001-01-01T00:00:00Z",
+  "labels": {
+    "alert_cluster": "tsf-cluster-evj4e5lv",
+    "alert_indicator": "node.disk.space.utilization",
+    "alert_indicator_aggregate_range": "0",
+    "alert_indicator_comparison": ">",
+    "alert_indicator_threshold": "0.8",
+    "alert_indicator_unit": "%",
+    "alert_involved_object_kind": "Node",
+    "alert_involved_object_name": "100.115.100.151",
+    "alert_involved_object_options": "Any",
+    "alert_kind": "resource",
+    "alert_name": "node.disk.space.utilization-g9s9n",
+    "alert_namespace": "cpaas-system",
+    "alert_project": "cpaas-system",
+    "alert_resource": "cpaas-node-rules",
+    "alert_source": "Platform",
+    "alertname": "node.disk.space.utilization-g9s9n-b9f484d0d15350d92be66779c0b2a873",
+    "device": "/dev/mapper/klas_host--100--99--17--147-docker_lv",
+    "host_ip": "100.115.100.151",
+    "instance": "100.115.100.151:9100",
+    "ip": "100.115.100.151",
+    "mountpoint": "/var/lib/docker",
+    "node": "100.115.100.151",
+    "node_name": "100.115.100.151",
+    "severity": "High"
+  },
+  "startsAt": "2026-01-22T07:41:39.314Z",
+  "status": "firing"
+}
