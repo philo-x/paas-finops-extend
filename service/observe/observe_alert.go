@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 	"main.go/global"
 	"main.go/model/common"
 	"main.go/model/common/request"
@@ -13,7 +14,7 @@ import (
 type ObserveAlertService struct {
 }
 
-// CreateAlert 创建告警
+// CreateAlert 创建告警(含去重和通知限流逻辑)
 func (m *ObserveAlertService) CreateAlert(req observe.AlertRequest) (err error, alert observe.PrometheusAlert) {
 	startsAt, err := time.Parse(time.RFC3339, req.StartsAt)
 	if err != nil {
@@ -28,33 +29,94 @@ func (m *ObserveAlertService) CreateAlert(req observe.AlertRequest) (err error, 
 		}
 	}
 
-	alert = observe.PrometheusAlert{
-		Status:      req.Status,
-		StartsAt:    &observe.NullTime{Time: &startsAt},
-		EndsAt:      &observe.NullTime{Time: &endsAt},
-		Annotations: req.Annotations,
-		Labels:      req.Labels,
-		IsDeleted:   0,
-		CreateTime:  common.JSONTime{Time: time.Now()},
-		UpdateTime:  common.JSONTime{Time: time.Now()},
-	}
+	// 生成告警指纹
+	dedupService := AlertDedupService{}
+	fingerprint := dedupService.GenerateFingerprint(req.Labels)
 
-	err = global.GVA_DB.Create(&alert).Error
-	if err != nil {
-		return err, alert
+	isResolved := req.Status == "resolved"
+	shouldNotify := false
+	today := time.Now().Truncate(24 * time.Hour)
+
+	// 查找是否存在相同指纹的活跃告警
+	existingAlert, findErr := dedupService.FindActiveAlertByFingerprint(fingerprint)
+
+	if findErr == nil && existingAlert != nil {
+		// 存在相同指纹的活跃告警，更新现有记录
+		existingAlert.AlertCount++
+		existingAlert.Status = req.Status
+		existingAlert.StartsAt = &observe.NullTime{Time: &startsAt}
+		if req.EndsAt != "" {
+			existingAlert.EndsAt = &observe.NullTime{Time: &endsAt}
+		}
+		existingAlert.Annotations = req.Annotations
+		existingAlert.Labels = req.Labels
+		existingAlert.UpdateTime = common.JSONTime{Time: time.Now()}
+
+		// 判断是否需要发送通知
+		shouldNotify = dedupService.ShouldSendNotification(existingAlert, isResolved)
+
+		if shouldNotify && !isResolved {
+			// firing状态且需要发送通知，更新通知计数
+			dedupService.UpdateNotifyCount(existingAlert)
+		}
+
+		// 更新数据库
+		err = global.GVA_DB.Save(existingAlert).Error
+		if err != nil {
+			return err, alert
+		}
+		alert = *existingAlert
+
+	} else if findErr == gorm.ErrRecordNotFound || existingAlert == nil {
+		// 不存在相同指纹的活跃告警，创建新记录
+		alert = observe.PrometheusAlert{
+			Status:           req.Status,
+			StartsAt:         &observe.NullTime{Time: &startsAt},
+			EndsAt:           &observe.NullTime{Time: &endsAt},
+			Annotations:      req.Annotations,
+			Labels:           req.Labels,
+			Fingerprint:      fingerprint,
+			AlertCount:       1,
+			DailyNotifyCount: 1,
+			LastNotifyDate:   &today,
+			IsDeleted:        0,
+			CreateTime:       common.JSONTime{Time: time.Now()},
+			UpdateTime:       common.JSONTime{Time: time.Now()},
+		}
+
+		err = global.GVA_DB.Create(&alert).Error
+		if err != nil {
+			return err, alert
+		}
+
+		// 新告警始终发送通知
+		shouldNotify = true
+
+	} else {
+		// 查询出错
+		return findErr, alert
 	}
 
 	// 异步发送MQ通知(失败仅记录日志，不影响主流程)
-	go func() {
-		mqService := MQClientService{}
-		if sendErr := mqService.SendAlertNotification(alert); sendErr != nil {
-			global.GVA_LOG.Error("MQ通知发送失败", zap.Error(sendErr), zap.Int("alertId", alert.AlertId))
-		} else {
-			global.GVA_LOG.Info("MQ通知发送成功", zap.Int("alertId", alert.AlertId))
-		}
-	}()
+	if shouldNotify {
+		go func() {
+			mqService := MQClientService{}
+			if sendErr := mqService.SendAlertNotification(alert); sendErr != nil {
+				global.GVA_LOG.Error("MQ通知发送失败", zap.Error(sendErr), zap.Int("alertId", alert.AlertId))
+			} else {
+				global.GVA_LOG.Info("MQ通知发送成功", zap.Int("alertId", alert.AlertId))
+			}
+		}()
+	} else {
+		global.GVA_LOG.Info("跳过MQ通知(已达每日限制)",
+			zap.Int("alertId", alert.AlertId),
+			zap.String("fingerprint", fingerprint),
+			zap.Int("alertCount", alert.AlertCount),
+			zap.Int("dailyNotifyCount", alert.DailyNotifyCount),
+		)
+	}
 
-	return err, alert
+	return nil, alert
 }
 
 // DeleteAlert 删除告警（软删除）

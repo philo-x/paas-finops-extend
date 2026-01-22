@@ -51,12 +51,17 @@ CREATE TABLE `prometheus_alert` (
   `ends_at` datetime DEFAULT NULL COMMENT '告警结束时间',
   `annotations` json DEFAULT NULL COMMENT '告警注解(JSON格式)',
   `labels` json DEFAULT NULL COMMENT '告警标签(JSON格式)',
+  `fingerprint` varchar(64) NOT NULL DEFAULT '' COMMENT '告警指纹',
+  `alert_count` int(11) NOT NULL DEFAULT 1 COMMENT '累计告警次数',
+  `daily_notify_count` int(11) NOT NULL DEFAULT 0 COMMENT '当日通知次数',
+  `last_notify_date` date DEFAULT NULL COMMENT '最后通知日期',
   `is_deleted` tinyint(4) NOT NULL DEFAULT '0' COMMENT '删除标识字段(0-未删除 1-已删除)',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
   PRIMARY KEY (`alert_id`) USING BTREE,
   KEY `idx_status` (`status`) USING BTREE,
-  KEY `idx_starts_at` (`starts_at`) USING BTREE
+  KEY `idx_starts_at` (`starts_at`) USING BTREE,
+  KEY `idx_fingerprint` (`fingerprint`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='告警信息表';
 
 -- ----------------------------
@@ -76,5 +81,15 @@ CREATE TABLE `exa_file_upload_and_downloads` (
   PRIMARY KEY (`id`),
   KEY `idx_exa_file_upload_and_downloads_deleted_at` (`deleted_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='文件上传表';
+
+-- ----------------------------
+-- 告警去重字段 (用于已存在的数据库升级)
+-- ----------------------------
+-- ALTER TABLE `prometheus_alert`
+-- ADD COLUMN `fingerprint` varchar(64) NOT NULL DEFAULT '' COMMENT '告警指纹' AFTER `labels`,
+-- ADD COLUMN `alert_count` int(11) NOT NULL DEFAULT 1 COMMENT '累计告警次数' AFTER `fingerprint`,
+-- ADD COLUMN `daily_notify_count` int(11) NOT NULL DEFAULT 0 COMMENT '当日通知次数' AFTER `alert_count`,
+-- ADD COLUMN `last_notify_date` date DEFAULT NULL COMMENT '最后通知日期' AFTER `daily_notify_count`,
+-- ADD INDEX `idx_fingerprint` (`fingerprint`);
 
 SET FOREIGN_KEY_CHECKS = 1;

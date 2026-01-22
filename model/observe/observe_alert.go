@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"time"
 
 	"main.go/model/common"
 )
@@ -69,15 +70,19 @@ func (l *AlertLabels) Scan(value interface{}) error {
 
 // PrometheusAlert 告警信息模型
 type PrometheusAlert struct {
-	AlertId     int              `json:"alertId" form:"alertId" gorm:"primarykey;AUTO_INCREMENT"`
-	Status      string           `json:"status" form:"status" gorm:"column:status;comment:告警状态;type:varchar(50);"`
-	StartsAt    *NullTime        `json:"startsAt" form:"startsAt" gorm:"column:starts_at;comment:告警开始时间;type:datetime;"`
-	EndsAt      *NullTime        `json:"endsAt" form:"endsAt" gorm:"column:ends_at;comment:告警结束时间;type:datetime;"`
-	Annotations AlertAnnotations `json:"annotations" form:"annotations" gorm:"column:annotations;comment:告警注解;type:json;"`
-	Labels      AlertLabels      `json:"labels" form:"labels" gorm:"column:labels;comment:告警标签;type:json;"`
-	IsDeleted   int              `json:"isDeleted" form:"isDeleted" gorm:"column:is_deleted;comment:删除标识字段(0-未删除 1-已删除);type:tinyint;default:0"`
-	CreateTime  common.JSONTime  `json:"createTime" form:"createTime" gorm:"column:create_time;comment:创建时间;type:datetime;"`
-	UpdateTime  common.JSONTime  `json:"updateTime" form:"updateTime" gorm:"column:update_time;comment:最新修改时间;type:datetime;"`
+	AlertId          int              `json:"alertId" form:"alertId" gorm:"primarykey;AUTO_INCREMENT"`
+	Status           string           `json:"status" form:"status" gorm:"column:status;comment:告警状态;type:varchar(50);"`
+	StartsAt         *NullTime        `json:"startsAt" form:"startsAt" gorm:"column:starts_at;comment:告警开始时间;type:datetime;"`
+	EndsAt           *NullTime        `json:"endsAt" form:"endsAt" gorm:"column:ends_at;comment:告警结束时间;type:datetime;"`
+	Annotations      AlertAnnotations `json:"annotations" form:"annotations" gorm:"column:annotations;comment:告警注解;type:json;"`
+	Labels           AlertLabels      `json:"labels" form:"labels" gorm:"column:labels;comment:告警标签;type:json;"`
+	Fingerprint      string           `json:"fingerprint" form:"fingerprint" gorm:"column:fingerprint;comment:告警指纹;type:varchar(64);index"`
+	AlertCount       int              `json:"alertCount" form:"alertCount" gorm:"column:alert_count;comment:累计告警次数;type:int;default:1"`
+	DailyNotifyCount int              `json:"dailyNotifyCount" form:"dailyNotifyCount" gorm:"column:daily_notify_count;comment:当日通知次数;type:int;default:0"`
+	LastNotifyDate   *time.Time       `json:"lastNotifyDate" form:"lastNotifyDate" gorm:"column:last_notify_date;comment:最后通知日期;type:date;"`
+	IsDeleted        int              `json:"isDeleted" form:"isDeleted" gorm:"column:is_deleted;comment:删除标识字段(0-未删除 1-已删除);type:tinyint;default:0"`
+	CreateTime       common.JSONTime  `json:"createTime" form:"createTime" gorm:"column:create_time;comment:创建时间;type:datetime;"`
+	UpdateTime       common.JSONTime  `json:"updateTime" form:"updateTime" gorm:"column:update_time;comment:最新修改时间;type:datetime;"`
 }
 
 // TableName PrometheusAlert 表名

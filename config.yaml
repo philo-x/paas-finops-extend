@@ -34,3 +34,4 @@ mq:
   tag: "prometheus-alert"
   timeout: 10
   receiver: "13418,15146"
+  daily-notify-limit: 1
