@@ -84,12 +84,12 @@ type PrometheusAlert struct {
 	EndsAt           *NullTime        `json:"endsAt" form:"endsAt" gorm:"column:ends_at;comment:告警结束时间;type:datetime;"`
 	Annotations      AlertAnnotations `json:"annotations" form:"annotations" gorm:"column:annotations;comment:告警注解;type:json;"`
 	Labels           AlertLabels      `json:"labels" form:"labels" gorm:"column:labels;comment:告警标签;type:json;"`
-	Fingerprint      string           `json:"fingerprint" form:"fingerprint" gorm:"column:fingerprint;comment:告警指纹;type:varchar(64);index"`
+	Fingerprint      string           `json:"fingerprint" form:"fingerprint" gorm:"column:fingerprint;comment:告警指纹;type:varchar(64);uniqueIndex:uq_fingerprint_not_deleted"`
 	AlertCount       int              `json:"alertCount" form:"alertCount" gorm:"column:alert_count;comment:累计告警次数;type:int;default:1"`
 	DailyNotifyCount int              `json:"dailyNotifyCount" form:"dailyNotifyCount" gorm:"column:daily_notify_count;comment:当日通知次数;type:int;default:0"`
 	LastNotifyDate   *time.Time       `json:"lastNotifyDate" form:"lastNotifyDate" gorm:"column:last_notify_date;comment:最后通知日期;type:date;"`
 	NotifyPending    bool             `json:"notifyPending" form:"notifyPending" gorm:"column:notify_pending;comment:是否有待发送的通知;type:tinyint(1);default:0"`
-	IsDeleted        int              `json:"isDeleted" form:"isDeleted" gorm:"column:is_deleted;comment:删除标识字段(0-未删除 1-已删除);type:tinyint;default:0"`
+	IsDeleted        int              `json:"isDeleted" form:"isDeleted" gorm:"column:is_deleted;comment:删除标识字段(0-未删除 1-已删除);type:tinyint;default:0;uniqueIndex:uq_fingerprint_not_deleted"`
 	CreateTime       common.JSONTime  `json:"createTime" form:"createTime" gorm:"column:create_time;comment:创建时间;type:datetime;"`
 	UpdateTime       common.JSONTime  `json:"updateTime" form:"updateTime" gorm:"column:update_time;comment:最新修改时间;type:datetime;"`
 }

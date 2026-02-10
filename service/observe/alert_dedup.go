@@ -13,23 +13,17 @@ type AlertDedupService struct {
 }
 
 // GenerateFingerprint 生成告警指纹
-// 使用 alert_cluster + alert_involved_object_kind + alert_involved_object_name + alert_resource + alertname 组合生成MD5
+// 基于告警描述生成MD5（不包含状态），格式: 告警对象+displayName+comparison+threshold
 func (s *AlertDedupService) GenerateFingerprint(labels observe.AlertLabels) string {
-	raw := fmt.Sprintf("%s|%s|%s|%s|%s",
-		labels.AlertCluster,
-		labels.AlertInvolvedObjectKind,
-		labels.AlertInvolvedObjectName,
-		labels.AlertResource,
-		labels.Alertname,
-	)
-	hash := md5.Sum([]byte(raw))
+	alertDesc := BuildAlertDesc(labels)
+	hash := md5.Sum([]byte(alertDesc))
 	return fmt.Sprintf("%x", hash)
 }
 
-// FindActiveAlertByFingerprint 根据指纹查找活跃告警(status=firing, is_deleted=0)
-func (s *AlertDedupService) FindActiveAlertByFingerprint(fingerprint string) (*observe.PrometheusAlert, error) {
+// FindAlertByFingerprint 根据指纹查找告警(所有状态统一去重, is_deleted=0)
+func (s *AlertDedupService) FindAlertByFingerprint(fingerprint string) (*observe.PrometheusAlert, error) {
 	var alert observe.PrometheusAlert
-	err := global.GVA_DB.Where("fingerprint = ? AND status = ? AND is_deleted = 0", fingerprint, "firing").First(&alert).Error
+	err := global.GVA_DB.Where("fingerprint = ? AND is_deleted = 0", fingerprint).First(&alert).Error
 	if err != nil {
 		return nil, err
 	}
@@ -38,15 +32,10 @@ func (s *AlertDedupService) FindActiveAlertByFingerprint(fingerprint string) (*o
 
 // ShouldSendNotification 判断是否应该发送通知
 // 如果NotifyPending=true则始终返回true(上次发送失败,需要重试)
-// resolved状态始终发送，firing状态根据每日限制判断
-func (s *AlertDedupService) ShouldSendNotification(alert *observe.PrometheusAlert, isResolved bool) bool {
+// firing和resolved状态都根据每日限制判断
+func (s *AlertDedupService) ShouldSendNotification(alert *observe.PrometheusAlert) bool {
 	// 如果有待发送的通知(上次发送失败)，始终尝试发送
 	if alert.NotifyPending {
-		return true
-	}
-
-	// resolved状态始终发送通知
-	if isResolved {
 		return true
 	}
 

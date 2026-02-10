@@ -5,6 +5,7 @@ import (
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"main.go/global"
 	"main.go/model/common"
 	"main.go/model/common/request"
@@ -15,6 +16,7 @@ type ObserveAlertService struct {
 }
 
 // CreateAlert 创建告警(含去重和通知限流逻辑)
+// 使用 Upsert 模式解决并发问题：通过数据库唯一约束保证同一指纹的告警只有一条记录
 func (m *ObserveAlertService) CreateAlert(req observe.AlertRequest) (err error, alert observe.PrometheusAlert) {
 	startsAt, err := time.Parse(time.RFC3339, req.StartsAt)
 	if err != nil {
@@ -29,72 +31,67 @@ func (m *ObserveAlertService) CreateAlert(req observe.AlertRequest) (err error, 
 		}
 	}
 
-	// 生成告警指纹
+	// 生成告警指纹（不包含状态，以便firing和resolved可以匹配）
 	dedupService := AlertDedupService{}
 	fingerprint := dedupService.GenerateFingerprint(req.Labels)
+	now := time.Now()
 
-	isResolved := req.Status == "resolved"
+	// 构建告警对象
+	alert = observe.PrometheusAlert{
+		Status:           req.Status,
+		StartsAt:         &observe.NullTime{Time: &startsAt},
+		EndsAt:           &observe.NullTime{Time: &endsAt},
+		Annotations:      req.Annotations,
+		Labels:           req.Labels,
+		Fingerprint:      fingerprint,
+		AlertCount:       1,
+		DailyNotifyCount: 0,
+		NotifyPending:    true, // 新告警标记为待发送
+		LastNotifyDate:   nil,
+		IsDeleted:        0,
+		CreateTime:       common.JSONTime{Time: now},
+		UpdateTime:       common.JSONTime{Time: now},
+	}
+
+	// 原子 Upsert: 插入或更新
+	// 当 fingerprint+is_deleted 冲突时，更新现有记录并增加 alert_count
+	err = global.GVA_DB.Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "fingerprint"}, {Name: "is_deleted"}},
+		DoUpdates: clause.Assignments(map[string]interface{}{
+			"status":      req.Status,
+			"starts_at":   startsAt,
+			"ends_at":     endsAt,
+			"annotations": req.Annotations,
+			"labels":      req.Labels,
+			"alert_count": gorm.Expr("alert_count + 1"),
+			"update_time": now,
+		}),
+	}).Create(&alert).Error
+
+	if err != nil {
+		return err, alert
+	}
+
+	// 获取最新记录（upsert 后需要获取完整数据，包括正确的 alert_id 和 alert_count）
+	err = global.GVA_DB.Where("fingerprint = ? AND is_deleted = 0", fingerprint).First(&alert).Error
+	if err != nil {
+		return err, alert
+	}
+
+	// 判断是否需要发送通知
+	// AlertCount == 1: 新告警，始终发送
+	// AlertCount > 1: 重复告警，根据每日限制判断
 	shouldNotify := false
-
-	// 查找是否存在相同指纹的活跃告警
-	existingAlert, findErr := dedupService.FindActiveAlertByFingerprint(fingerprint)
-
-	if findErr == nil && existingAlert != nil {
-		// 存在相同指纹的活跃告警，更新现有记录
-		existingAlert.AlertCount++
-		existingAlert.Status = req.Status
-		existingAlert.StartsAt = &observe.NullTime{Time: &startsAt}
-		if req.EndsAt != "" {
-			existingAlert.EndsAt = &observe.NullTime{Time: &endsAt}
-		}
-		existingAlert.Annotations = req.Annotations
-		existingAlert.Labels = req.Labels
-		existingAlert.UpdateTime = common.JSONTime{Time: time.Now()}
-
-		// 判断是否需要发送通知
-		shouldNotify = dedupService.ShouldSendNotification(existingAlert, isResolved)
-
-		if shouldNotify {
-			// 需要发送通知，设置NotifyPending=true(不直接增加DailyNotifyCount)
-			dedupService.UpdateNotifyCount(existingAlert)
-		}
-
-		// 更新数据库
-		err = global.GVA_DB.Save(existingAlert).Error
-		if err != nil {
-			return err, alert
-		}
-		alert = *existingAlert
-
-	} else if findErr == gorm.ErrRecordNotFound || existingAlert == nil {
-		// 不存在相同指纹的活跃告警，创建新记录
-		alert = observe.PrometheusAlert{
-			Status:           req.Status,
-			StartsAt:         &observe.NullTime{Time: &startsAt},
-			EndsAt:           &observe.NullTime{Time: &endsAt},
-			Annotations:      req.Annotations,
-			Labels:           req.Labels,
-			Fingerprint:      fingerprint,
-			AlertCount:       1,
-			DailyNotifyCount: 0,    // 初始化为0,发送成功后再增加
-			NotifyPending:    true, // 标记为待发送
-			LastNotifyDate:   nil,  // 发送成功后再设置
-			IsDeleted:        0,
-			CreateTime:       common.JSONTime{Time: time.Now()},
-			UpdateTime:       common.JSONTime{Time: time.Now()},
-		}
-
-		err = global.GVA_DB.Create(&alert).Error
-		if err != nil {
-			return err, alert
-		}
-
+	if alert.AlertCount == 1 {
 		// 新告警始终发送通知
 		shouldNotify = true
-
 	} else {
-		// 查询出错
-		return findErr, alert
+		// 重复告警，检查是否应该发送通知
+		shouldNotify = dedupService.ShouldSendNotification(&alert)
+		if shouldNotify {
+			// 需要发送通知，设置 NotifyPending=true
+			global.GVA_DB.Model(&alert).Update("notify_pending", true)
+		}
 	}
 
 	// 异步发送MQ通知(失败仅记录日志，不影响主流程)

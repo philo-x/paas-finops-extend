@@ -62,8 +62,15 @@ CREATE TABLE `prometheus_alert` (
   PRIMARY KEY (`alert_id`) USING BTREE,
   KEY `idx_status` (`status`) USING BTREE,
   KEY `idx_starts_at` (`starts_at`) USING BTREE,
-  KEY `idx_fingerprint` (`fingerprint`) USING BTREE
+  UNIQUE KEY `uq_fingerprint_not_deleted` (`fingerprint`, `is_deleted`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC COMMENT='告警信息表';
+
+-- ----------------------------
+-- 唯一约束升级脚本 (用于已存在的数据库升级)
+-- ----------------------------
+-- ALTER TABLE `prometheus_alert`
+-- DROP INDEX `idx_fingerprint`,
+-- ADD UNIQUE KEY `uq_fingerprint_not_deleted` (`fingerprint`, `is_deleted`);
 
 -- ----------------------------
 -- 文件上传表（用于文件上传功能）
