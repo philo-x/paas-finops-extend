@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"gorm.io/gorm"
 	"main.go/global"
 	"main.go/model/observe"
 )
@@ -76,35 +77,52 @@ func (s *AlertDedupService) UpdateNotifyCount(alert *observe.PrometheusAlert) {
 }
 
 // ConfirmNotifySent 确认通知发送成功
-// 发送成功后调用此方法: 清除NotifyPending标记并原子增加DailyNotifyCount
+// 发送成功后调用此方法: 清除NotifyPending标记
+// 注意: DailyNotifyCount已在TryReserveNotification中原子预占
 func (s *AlertDedupService) ConfirmNotifySent(alertId int) error {
+	return global.GVA_DB.Model(&observe.PrometheusAlert{}).
+		Where("alert_id = ?", alertId).
+		Update("notify_pending", false).Error
+}
+
+// TryReserveNotification 尝试原子预占通知配额
+// 返回 true 表示成功预占，可以发送通知
+// 使用乐观锁：UPDATE ... WHERE daily_notify_count < limit
+func (s *AlertDedupService) TryReserveNotification(alertId int) (bool, error) {
+	dailyLimit := global.GVA_CONFIG.MQ.DailyNotifyLimit
+	if dailyLimit <= 0 {
+		// 不限制，直接返回成功
+		return true, nil
+	}
+
 	now := time.Now()
+	today := now.Format("2006-01-02")
 
-	// 先查询当前告警以获取LastNotifyDate
-	var alert observe.PrometheusAlert
-	if err := global.GVA_DB.Where("alert_id = ?", alertId).First(&alert).Error; err != nil {
-		return err
+	// 原子操作：检查并预占配额
+	// 条件：同一天且未达上限，或者跨天（重置计数）
+	result := global.GVA_DB.Model(&observe.PrometheusAlert{}).
+		Where("alert_id = ?", alertId).
+		Where("(DATE(last_notify_date) = ? AND daily_notify_count < ?) OR last_notify_date IS NULL OR DATE(last_notify_date) != ?",
+			today, dailyLimit, today).
+		Updates(map[string]interface{}{
+			"notify_pending":     true,
+			"daily_notify_count": gorm.Expr("CASE WHEN DATE(last_notify_date) = ? THEN daily_notify_count + 1 ELSE 1 END", today),
+			"last_notify_date":   now,
+		})
+
+	if result.Error != nil {
+		return false, result.Error
 	}
 
-	// 判断是否需要重置计数(跨天)
-	updates := map[string]interface{}{
-		"notify_pending": false,
-	}
+	// RowsAffected > 0 表示成功预占
+	return result.RowsAffected > 0, nil
+}
 
-	if alert.LastNotifyDate != nil && isSameDay(now, *alert.LastNotifyDate) {
-		// 同一天，使用原子增加
-		return global.GVA_DB.Model(&observe.PrometheusAlert{}).
-			Where("alert_id = ?", alertId).
-			Updates(updates).
-			UpdateColumn("daily_notify_count", global.GVA_DB.Raw("daily_notify_count + 1")).Error
-	} else {
-		// 不同一天或第一次，重置计数为1
-		updates["daily_notify_count"] = 1
-		updates["last_notify_date"] = now
-		return global.GVA_DB.Model(&observe.PrometheusAlert{}).
-			Where("alert_id = ?", alertId).
-			Updates(updates).Error
-	}
+// RollbackNotification 回滚通知计数（发送失败时调用）
+func (s *AlertDedupService) RollbackNotification(alertId int) error {
+	return global.GVA_DB.Model(&observe.PrometheusAlert{}).
+		Where("alert_id = ?", alertId).
+		UpdateColumn("daily_notify_count", gorm.Expr("GREATEST(daily_notify_count - 1, 0)")).Error
 }
 
 // ResetDailyNotifyCount 重置每日通知计数(跨天时调用)

@@ -97,9 +97,19 @@ func MapObjectKind(kind string) string {
 }
 
 // ParseI18nField 解析国际化字段，返回中文值
+// 支持两种格式:
+// - JSON格式: {"zh":"CPU使用率高","en":"High CPU usage"}
+// - 纯文本格式: 应用连续3分钟调度失败
 func ParseI18nField(jsonStr string) string {
 	if jsonStr == "" {
 		return ""
+	}
+
+	// 检查是否是 JSON 格式（以 { 开头）
+	trimmed := strings.TrimSpace(jsonStr)
+	if !strings.HasPrefix(trimmed, "{") {
+		// 不是 JSON，直接返回原值
+		return jsonStr
 	}
 
 	var i18n struct {

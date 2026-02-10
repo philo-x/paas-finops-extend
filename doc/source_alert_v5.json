@@ -1,0 +1,39 @@
+{
+  "annotations": {
+    "summary": "",
+    "display_name": "应用连续3分钟调度失败",
+    "alert_current_value": "1",
+    "alert_notifications": "[\"test-env-notification\"]"
+  },
+  "endsAt": "2026-01-22T14:08:39.314Z",
+  "labels": {
+    "ip": "",
+    "node": "",
+    "device": "",
+    "host_ip": "",
+    "instance": "172.96.25.11:8080",
+    "severity": "Critical",
+    "alertname": "custom-ffb4y-08e329d814f020fdc2df011ab705c751",
+    "node_name": "",
+    "alert_kind": "resource",
+    "alert_name": "custom-ffb4y",
+    "mountpoint": "",
+    "alert_source": "Platform",
+    "display_name": "应用连续3分钟调度失败",
+    "alert_cluster": "tsf-cluster-evj4e5lv",
+    "alert_project": "cpaas-system",
+    "alert_resource": "application-schedule-rules",
+    "alert_indicator": "custom",
+    "alert_namespace": "cpaas-system",
+    "alert_indicator_unit": "",
+    "alert_indicator_alias": "",
+    "alert_indicator_threshold": "1",
+    "alert_indicator_comparison": ">=",
+    "alert_involved_object_kind": "Cluster",
+    "alert_involved_object_name": "tsf-cluster-evj4e5lv",
+    "alert_involved_object_options": "",
+    "alert_indicator_aggregate_range": "0"
+  },
+  "startsAt": "2026-01-22T13:10:39.314Z",
+  "status": "firing"
+}
