@@ -82,7 +82,7 @@ func (s *MQClientService) buildMQMessage(alert observe.PrometheusAlert) observe.
 				Summary:      alertDesc,
 				TriggerValue: alert.Annotations.AlertCurrentValue,
 				AlertTime:    alert.StartsAt.Format("2006-01-02 15:04:05"),
-				Remark:       "",
+				Remark:       fmt.Sprintf("%d", time.Now().Unix()),
 			},
 		},
 	}

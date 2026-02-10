@@ -79,27 +79,12 @@ func (m *ObserveAlertService) CreateAlert(req observe.AlertRequest) (err error, 
 	}
 
 	// 判断是否需要发送通知
-	// 使用乐观锁原子预占通知配额，解决并发竞态问题
-	shouldNotify := false
-	if alert.AlertCount == 1 {
-		// 新告警，尝试预占配额
-		reserved, err := dedupService.TryReserveNotification(alert.AlertId)
-		if err != nil {
-			global.GVA_LOG.Error("预占通知配额失败", zap.Error(err), zap.Int("alertId", alert.AlertId))
-		}
-		shouldNotify = reserved
-	} else {
-		// 重复告警，检查 NotifyPending 或尝试预占
-		if alert.NotifyPending {
-			shouldNotify = true // 重试之前失败的通知
-		} else {
-			reserved, err := dedupService.TryReserveNotification(alert.AlertId)
-			if err != nil {
-				global.GVA_LOG.Error("预占通知配额失败", zap.Error(err), zap.Int("alertId", alert.AlertId))
-			}
-			shouldNotify = reserved
-		}
+	// 始终使用乐观锁原子预占通知配额，解决并发竞态问题
+	reserved, reserveErr := dedupService.TryReserveNotification(alert.AlertId)
+	if reserveErr != nil {
+		global.GVA_LOG.Error("预占通知配额失败", zap.Error(reserveErr), zap.Int("alertId", alert.AlertId))
 	}
+	shouldNotify := reserved
 
 	// 异步发送MQ通知(失败仅记录日志，不影响主流程)
 	if shouldNotify {
