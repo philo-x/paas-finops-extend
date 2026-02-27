@@ -9,4 +9,6 @@ type Server struct {
 	Local Local `mapstructure:"local" json:"local" yaml:"local"`
 	// mq
 	MQ MQ `mapstructure:"mq" json:"mq" yaml:"mq"`
+	// k8s
+	K8s K8s `mapstructure:"k8s" json:"k8s" yaml:"k8s"`
 }

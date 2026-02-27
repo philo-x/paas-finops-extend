@@ -1,0 +1,64 @@
+apiVersion: bcs.finops.io/v1alpha1
+kind: Recommendation
+metadata:
+  annotations:
+    app.cpaas.io/last-replicas: "1"
+    bcs.finops.io/last-start-time: 2026-02-25 09:18:37
+    bcs.finops.io/message: Success
+    bcs.finops.io/recommendation-target-clusterDisplayName: SIT-WC-TEST-HW-01
+    bcs.finops.io/recommendation-target-namespaceDisplayName: 统一信贷常规sit环境
+    bcs.finops.io/recommendation-target-projectDisplayName: 统一信贷管理平台（UCMP）
+    bcs.finops.io/run-number: "15"
+    cpaas.io/creator: wx20230131
+    cpaas.io/display-name: 电子合同
+    cpaas.io/operator: wx20230131
+    cpaas.io/updated-at: 2026-02-04T00:50:46Z
+    deployment.kubernetes.io/revision: "4"
+  creationTimestamp: 2026-02-11T08:53:15Z
+  generateName: cluster-resource-recommend-resource-
+  generation: 15
+  labels:
+    bcs.finops.io/recommendation-rule-name: cluster-resource-recommend
+    bcs.finops.io/recommendation-rule-recommender: Resource
+    bcs.finops.io/recommendation-rule-uid: 5f628587-56fa-4ccb-82e9-e5688e657639
+    bcs.finops.io/recommendation-target-cluster: tsf-cluster-byxzgkal
+    bcs.finops.io/recommendation-target-kind: Deployment
+    bcs.finops.io/recommendation-target-name: ucmp-edoc
+    bcs.finops.io/recommendation-target-namespace: ucmp-sit
+    bcs.finops.io/recommendation-target-project: "202307050001"
+    bcs.finops.io/recommendation-target-version: v1
+  name: cluster-resource-recommend-resource-29wft
+  namespace: bcs-finops-system
+  ownerReferences:
+    - apiVersion: bcs.finops.io/v1alpha1
+      blockOwnerDeletion: false
+      controller: false
+      kind: RecommendationRule
+      name: cluster-resource-recommend
+      uid: 5f628587-56fa-4ccb-82e9-e5688e657639
+  resourceVersion: "5774050547"
+  uid: 5ef59e38-0016-452d-b4c6-22d5cd5eccd7
+spec:
+  adoptionType: Status
+  cluster: tsf-cluster-byxzgkal
+  completionStrategy:
+    completionStrategyType: Once
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ucmp-edoc
+    namespace: ucmp-sit
+  type: Resource
+status:
+  action: Patch
+  currentInfo: '{"spec":{"template":{"spec":{"containers":[{"name":"ucmp-edoc","resources":{"requests":{"cpu":"2","memory":"4Gi"}}}]}}}}'
+  lastUpdateTime: 2026-02-25T09:18:37Z
+  recommendedInfo: '{"spec":{"template":{"spec":{"containers":[{"name":"ucmp-edoc","resources":{"requests":{"cpu":"2415m","memory":"3105Mi"}}}]}}}}'
+  recommendedValue: |
+    resourceRequest:
+      containers:
+      - containerName: ucmp-edoc
+        target:
+          cpu: 2415m
+          memory: 3105Mi
+  targetRef: {}

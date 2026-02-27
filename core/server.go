@@ -17,7 +17,7 @@ type server interface {
 func RunWindowsServer() {
 	Router := initialize.Routers()
 
-	address := fmt.Sprintf("%s", global.GVA_CONFIG.System.Addr)
+	address := fmt.Sprintf("%s:%d", global.GVA_CONFIG.System.Host, global.GVA_CONFIG.System.Port)
 	s := initServer(address, Router)
 	// 保证文本顺序输出
 	// In order to ensure that the text order output can be deleted

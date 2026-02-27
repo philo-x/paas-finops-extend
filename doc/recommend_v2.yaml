@@ -1,0 +1,71 @@
+apiVersion: bcs.finops.io/v1alpha1
+kind: Recommendation
+metadata:
+  annotations:
+    app.cpaas.io/last-replicas: "1"
+    bcs.finops.io/last-start-time: 2026-02-26 09:00:30
+    bcs.finops.io/message: Success
+    bcs.finops.io/recommendation-target-clusterDisplayName: SIT-WC-TEST-HW-01
+    bcs.finops.io/recommendation-target-namespaceDisplayName: ICOP-部署管理台
+    bcs.finops.io/recommendation-target-projectDisplayName: 银联业务中心
+    bcs.finops.io/run-number: "16"
+    cpaas.io/display-name: ""
+    cpaas.io/operator: wx2016289
+    cpaas.io/updated-at: 2025-03-26T07:01:21Z
+    deployment.kubernetes.io/revision: "576"
+  creationTimestamp: 2026-02-11T08:44:49Z
+  generateName: cluster-resource-recommend-resource-
+  generation: 16
+  labels:
+    app.oam.dev/name: cupcard-admin-sit
+    bcs.finops.io/recommendation-rule-name: cluster-resource-recommend
+    bcs.finops.io/recommendation-rule-recommender: Resource
+    bcs.finops.io/recommendation-rule-uid: 5f628587-56fa-4ccb-82e9-e5688e657639
+    bcs.finops.io/recommendation-target-cluster: tsf-cluster-byxzgkal
+    bcs.finops.io/recommendation-target-kind: Deployment
+    bcs.finops.io/recommendation-target-name: cupcard-admin-sit-d1
+    bcs.finops.io/recommendation-target-namespace: dmc
+    bcs.finops.io/recommendation-target-project: 201710120057cupbc
+    bcs.finops.io/recommendation-target-version: v1
+    platform: tsf
+    qcloud-app: group-qv36nj6v
+    qcloud-app-name: cupcard-admin-sit-d1
+  name: cluster-resource-recommend-resource-4zlz7
+  namespace: bcs-finops-system
+  ownerReferences:
+    - apiVersion: bcs.finops.io/v1alpha1
+      blockOwnerDeletion: false
+      controller: false
+      kind: RecommendationRule
+      name: cluster-resource-recommend
+      uid: 5f628587-56fa-4ccb-82e9-e5688e657639
+  resourceVersion: "5779604008"
+  uid: 729cb70d-5ccd-45e3-8f9e-51145e5ee76b
+spec:
+  adoptionType: Status
+  cluster: tsf-cluster-byxzgkal
+  completionStrategy:
+    completionStrategyType: Once
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: cupcard-admin-sit-d1
+    namespace: dmc
+  type: Resource
+status:
+  action: Patch
+  currentInfo: '{"spec":{"template":{"spec":{"containers":[{"name":"group-qv36nj6v-docker","resources":{"requests":{"cpu":"1500m","memory":"2Gi"}}},{"name":"group-qv36nj6v-agent-docker","resources":{"requests":{"cpu":"100m","memory":"125Mi"}}}]}}}}'
+  lastUpdateTime: 2026-02-26T09:00:30Z
+  recommendedInfo: '{"spec":{"template":{"spec":{"containers":[{"name":"group-qv36nj6v-docker","resources":{"requests":{"cpu":"1265m","memory":"1150Mi"}}},{"name":"group-qv36nj6v-agent-docker","resources":{"requests":{"cpu":"114m","memory":"230Mi"}}}]}}}}'
+  recommendedValue: |
+    resourceRequest:
+      containers:
+      - containerName: group-qv36nj6v-docker
+        target:
+          cpu: 1265m
+          memory: 1150Mi
+      - containerName: group-qv36nj6v-agent-docker
+        target:
+          cpu: 114m
+          memory: 230Mi
+  targetRef: {}

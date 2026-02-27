@@ -13,12 +13,17 @@ mysql:
   log-mode: ""
   log-zap: false
 system:
-  addr: 0.0.0.0:8888
+  host: 0.0.0.0
+  port: 8888
+  webhook-port: 8443
   db-type: mysql
   oss-type: local
   use-multipoint: false
   iplimit-count: 15000
   iplimit-time: 3600
+  cluster-id: "tsf-cluster-byxzgkal"
+  tls-cert: "/etc/webhook/certs/tls.crt"
+  tls-key: "/etc/webhook/certs/tls.key"
 zap:
   level: info
   format: console
@@ -35,3 +40,8 @@ mq:
   timeout: 10
   receiver: "13418,15146"
   daily-notify-limit: 1
+k8s:
+  kube-config: ""
+  # 有了kube-config 就不需要 host 和 bearer-token
+  host: ""
+  bearer-token: ""
