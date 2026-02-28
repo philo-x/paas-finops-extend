@@ -10,6 +10,7 @@ import (
 	modelWebhook "main.go/model/webhook"
 
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
@@ -121,8 +122,28 @@ func (s *RecommendationService) MutatePod(pod *corev1.Pod, namespace string) ([]
 			continue
 		}
 
+		// Fix Bug 2: Check limit
+		targetQty, err := resource.ParseQuantity(targetRes.CPU)
+		if err != nil {
+			log.Printf("Failed to parse recommended CPU %s: %v", targetRes.CPU, err)
+			continue
+		}
+
+		if container.Resources.Limits != nil {
+			if limitQty, ok := container.Resources.Limits[corev1.ResourceCPU]; ok {
+				if targetQty.Cmp(limitQty) > 0 {
+					log.Printf("Recommended CPU %s exceeds limit %s for container %s, skipping patch", targetRes.CPU, limitQty.String(), container.Name)
+					continue
+				}
+			}
+		}
+
 		hasRequests := container.Resources.Requests != nil
-		hasCPU := hasRequests && container.Resources.Requests.Cpu() != nil
+		// Fix Bug 1: Correctly check map key
+		hasCPU := false
+		if hasRequests {
+			_, hasCPU = container.Resources.Requests[corev1.ResourceCPU]
+		}
 
 		patchOp := "replace"
 		if !hasRequests {

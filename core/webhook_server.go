@@ -6,10 +6,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"main.go/global"
+	"main.go/initialize"
 	"main.go/router"
 )
 
 func RunWebhookServer() {
+	// Initialize K8s client and informer
+	initialize.K8s()
+
 	r := gin.New()
 	r.Use(gin.Recovery())
 
