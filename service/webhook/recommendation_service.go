@@ -118,54 +118,112 @@ func (s *RecommendationService) MutatePod(pod *corev1.Pod, namespace string) ([]
 	// 3. Generate Patches
 	for i, container := range pod.Spec.Containers {
 		targetRes, ok := recommendationMap[container.Name]
-		if !ok || targetRes.CPU == "" {
+		if !ok {
 			continue
 		}
 
-		// Fix Bug 2: Check limit
-		targetQty, err := resource.ParseQuantity(targetRes.CPU)
-		if err != nil {
-			log.Printf("Failed to parse recommended CPU %s: %v", targetRes.CPU, err)
-			continue
-		}
+		hasRequests := container.Resources.Requests != nil
 
-		if container.Resources.Limits != nil {
-			if limitQty, ok := container.Resources.Limits[corev1.ResourceCPU]; ok {
-				if targetQty.Cmp(limitQty) > 0 {
-					log.Printf("Recommended CPU %s exceeds limit %s for container %s, skipping patch", targetRes.CPU, limitQty.String(), container.Name)
-					continue
+		// Determine CPU to patch
+		cpuToPatch := ""
+		if targetRes.CPU != "" {
+			targetCPUQty, err := resource.ParseQuantity(targetRes.CPU)
+			if err != nil {
+				log.Printf("Failed to parse recommended CPU %s: %v", targetRes.CPU, err)
+			} else {
+				shouldPatch := true
+				if container.Resources.Limits != nil {
+					if limitQty, ok2 := container.Resources.Limits[corev1.ResourceCPU]; ok2 && targetCPUQty.Cmp(limitQty) > 0 {
+						log.Printf("Recommended CPU %s exceeds limit %s for container %s, skipping", targetRes.CPU, limitQty.String(), container.Name)
+						shouldPatch = false
+					}
+				}
+				if shouldPatch && hasRequests {
+					if currentCPU, exists := container.Resources.Requests[corev1.ResourceCPU]; exists && currentCPU.Cmp(targetCPUQty) == 0 {
+						log.Printf("CPU already at recommended value %s for container %s, skipping", targetRes.CPU, container.Name)
+						shouldPatch = false
+					}
+				}
+				if shouldPatch {
+					cpuToPatch = targetRes.CPU
 				}
 			}
 		}
 
-		hasRequests := container.Resources.Requests != nil
-		// Fix Bug 1: Correctly check map key
-		hasCPU := false
-		if hasRequests {
-			_, hasCPU = container.Resources.Requests[corev1.ResourceCPU]
+		// Determine Memory to patch
+		memoryToPatch := ""
+		if targetRes.Memory != "" {
+			targetMemQty, err := resource.ParseQuantity(targetRes.Memory)
+			if err != nil {
+				log.Printf("Failed to parse recommended Memory %s: %v", targetRes.Memory, err)
+			} else {
+				shouldPatch := true
+				if container.Resources.Limits != nil {
+					if limitQty, ok2 := container.Resources.Limits[corev1.ResourceMemory]; ok2 && targetMemQty.Cmp(limitQty) > 0 {
+						log.Printf("Recommended Memory %s exceeds limit %s for container %s, skipping", targetRes.Memory, limitQty.String(), container.Name)
+						shouldPatch = false
+					}
+				}
+				if shouldPatch && hasRequests {
+					if currentMem, exists := container.Resources.Requests[corev1.ResourceMemory]; exists && currentMem.Cmp(targetMemQty) == 0 {
+						log.Printf("Memory already at recommended value %s for container %s, skipping", targetRes.Memory, container.Name)
+						shouldPatch = false
+					}
+				}
+				if shouldPatch {
+					memoryToPatch = targetRes.Memory
+				}
+			}
 		}
 
-		patchOp := "replace"
-		if !hasRequests {
-			patches = append(patches, modelWebhook.JSONPatch{
-				Op:   "add",
-				Path: fmt.Sprintf("/spec/containers/%d/resources/requests", i),
-				Value: map[string]string{
-					"cpu": targetRes.CPU,
-				},
-			})
+		if cpuToPatch == "" && memoryToPatch == "" {
 			continue
-		} else if !hasCPU {
-			patchOp = "add"
 		}
 
-		patches = append(patches, modelWebhook.JSONPatch{
-			Op:    patchOp,
-			Path:  fmt.Sprintf("/spec/containers/%d/resources/requests/cpu", i),
-			Value: targetRes.CPU,
-		})
+		if !hasRequests {
+			// No requests object exists — create it with all recommended values at once
+			requestsValue := map[string]string{}
+			if cpuToPatch != "" {
+				requestsValue["cpu"] = cpuToPatch
+			}
+			if memoryToPatch != "" {
+				requestsValue["memory"] = memoryToPatch
+			}
+			patches = append(patches, modelWebhook.JSONPatch{
+				Op:    "add",
+				Path:  fmt.Sprintf("/spec/containers/%d/resources/requests", i),
+				Value: requestsValue,
+			})
+		} else {
+			// Requests object exists — patch each key individually
+			if cpuToPatch != "" {
+				_, hasCPU := container.Resources.Requests[corev1.ResourceCPU]
+				op := "replace"
+				if !hasCPU {
+					op = "add"
+				}
+				patches = append(patches, modelWebhook.JSONPatch{
+					Op:    op,
+					Path:  fmt.Sprintf("/spec/containers/%d/resources/requests/cpu", i),
+					Value: cpuToPatch,
+				})
+			}
+			if memoryToPatch != "" {
+				_, hasMemory := container.Resources.Requests[corev1.ResourceMemory]
+				op := "replace"
+				if !hasMemory {
+					op = "add"
+				}
+				patches = append(patches, modelWebhook.JSONPatch{
+					Op:    op,
+					Path:  fmt.Sprintf("/spec/containers/%d/resources/requests/memory", i),
+					Value: memoryToPatch,
+				})
+			}
+		}
 
-		log.Printf("[O(1) Cache Hit] Pod: %s, Container: %s, Set CPU: %s", pod.GenerateName, container.Name, targetRes.CPU)
+		log.Printf("[O(1) Cache Hit] Pod: %s, Container: %s, Set CPU: %s, Set Memory: %s",
+			pod.GenerateName, container.Name, cpuToPatch, memoryToPatch)
 	}
 
 	return patches, nil

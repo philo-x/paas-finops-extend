@@ -4,26 +4,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is **paas-finops-extend**, a Go + Gin implementation of a FinOps API backend with admin user management and observability (alerts) functionality.
+**paas-finops-extend** is a Go + Gin FinOps API backend. It runs two servers concurrently:
+- **Port 8888** – Main HTTP REST API (admin management + alerting)
+- **Port 8443** – HTTPS Kubernetes mutating admission webhook (pod CPU/memory mutation)
 
-## Build and Run Commands
+Requires MySQL 5.7+ with schema from `static-files/finops_extend_schema.sql`.
+
+## Build and Run
 
 ```bash
-# Build
 go build -o server main.go
-
-# Run
 ./server
 
-# Dependencies
+# Optional flags
+./server -c /path/to/config.yaml    # override config file
+
+# Config loading priority: -c flag > GVA_CONFIG env var > ./config.yaml
+
 go mod tidy
 
-# Docker build and run
 docker build -t paas-finops-extend .
-docker run -p 8888:8888 paas-finops-extend
+docker run -p 8888:8888 -p 8443:8443 paas-finops-extend
 ```
-
-The server runs on port 8888 (configurable in `config.yaml`). Requires MySQL 5.7+ with schema from `/static-files/finops_extend_schema.sql`.
 
 ## Architecture
 
@@ -33,7 +35,7 @@ Routes (router/) → API Handlers (api/v1/) → Services (service/) → Models (
 ```
 
 **Module Structure:**
-The codebase uses a group-based architecture with three modules: `manage`, `observe`, and `example`. Each module follows the same layered pattern:
+Four modules follow the same layered pattern: `manage`, `observe`, `webhook`, and `example` (template only, no routes).
 
 ```
 api/v1/{module}/      → HTTP handlers
@@ -42,89 +44,99 @@ model/{module}/       → GORM models + request/response structs
 router/{module}/      → Route registration
 ```
 
-**Entry Points (enter.go files):**
-Each layer has an `enter.go` that aggregates module groups:
-- `service/enter.go` → `ServiceGroupApp` (contains ManageServiceGroup, ObserveServiceGroup, ExampleServiceGroup)
-- `router/enter.go` → `RouterGroupApp` (contains Manage, Observe router groups)
-- `api/v1/enter.go` → `ApiGroupApp` (contains ManageApiGroup, ObserveApiGroup)
+**Entry Points (`enter.go` files):**
+Each layer aggregates sub-groups via a top-level `enter.go`:
+- `service/enter.go` → `ServiceGroupApp` (Manage, Observe, Example, Webhook)
+- `router/enter.go` → `RouterGroupApp` (Manage, Observe, Webhook)
+- `api/v1/enter.go` → `ApiGroupApp` (Manage, Observe, Webhook)
 
-**Global Variables:**
-- `global.GVA_DB` - GORM database instance
-- `global.GVA_LOG` - Zap logger
-- `global.GVA_CONFIG` - Viper configuration
+**Global Variables (`global/global.go`):**
+- `GVA_DB` – GORM database instance
+- `GVA_VP` – Viper config handler
+- `GVA_LOG` – Zap logger
+- `GVA_CONFIG` – Parsed config (`config.Server`)
+- `GVA_K8S_DYNAMIC` – K8s dynamic client (`dynamic.Interface`)
+- `GVA_K8S_INDEXER` – K8s cache indexer for Recommendation CRs
 
 ## API Routes
 
-**Base paths:**
-- `/api/v1/manage/` - Admin management routes
-- `/api/v1/observe/` - Observability routes (alerts)
-
-**Admin User (`/api/v1/manage/`):**
-- `POST adminUser/login` - Admin login (public)
-- `POST createadminUser` - Create admin user (auth required)
-- `PUT adminUser/name` - Update admin name
-- `PUT adminUser/password` - Update password
-- `GET adminUser/profile` - Get admin profile
-- `DELETE logout` - Logout
-- `POST upload/file` - Upload file
+**Management (`/api/v1/manage/`):**
+- `POST adminUser/login` – Login (public)
+- `POST createadminUser` – Create user (auth required)
+- `PUT adminUser/name` / `PUT adminUser/password` – Update profile
+- `GET adminUser/profile` – Get profile
+- `DELETE logout` – Logout
+- `POST upload/file` – File upload
 
 **Alerts (`/api/v1/observe/`):**
-- `POST alerts` - Create alert
-- `GET alerts` - Get alert list
-- `GET alerts/:alertId` - Get alert by ID
-- `PUT alerts/:alertId` - Update alert
-- `DELETE alerts/:alertId` - Delete alert
-- `DELETE alerts` - Batch delete alerts
+- `POST/GET alerts` – Create / list alerts
+- `GET/PUT/DELETE alerts/:alertId` – Get / update / delete by ID
+- `DELETE alerts` – Batch delete
+
+**Other:**
+- `GET /health` – Health check
+- `POST /mutate` (port 8443, HTTPS) – K8s admission webhook
 
 ## Key Patterns
 
 **Standard Response:**
 ```go
-response.OkWithData(data, c)
-response.OkWithMessage("message", c)
-response.FailWithMessage("error", c)
+response.OkWithData(data, c)        // resultCode: 200
+response.OkWithMessage("msg", c)    // resultCode: 200
+response.FailWithMessage("err", c)  // resultCode: 500
+// Unauthenticated responses use resultCode: 416
 ```
 
 **Service Injection:**
 ```go
-var finopsAdminUserService = service.ServiceGroupApp.ManageServiceGroup.ManageAdminUserService
 var alertService = service.ServiceGroupApp.ObserveServiceGroup.ObserveAlertService
 ```
 
 **Model Definition:**
 ```go
-type AdminUser struct {
-    AdminUserId int `json:"adminUserId" gorm:"primarykey;AUTO_INCREMENT"`
+type PrometheusAlert struct {
+    AlertId int `json:"alertId" gorm:"primarykey;AUTO_INCREMENT"`
     // ...
 }
-func (AdminUser) TableName() string {
-    return "admin_user"
-}
+func (PrometheusAlert) TableName() string { return "prometheus_alert" }
 ```
+
+**JWT Auth:** Uses custom `token` header (not `Authorization`). Token is validated against the `admin_user_token` table.
+
+**Alert Deduplication:** Fingerprint is generated from alert labels and stored in `prometheus_alert.fingerprint` (unique index). Upsert pattern tracks `alert_count`, `daily_notify_count`, and `last_notify_date`. Daily notification limit is enforced per the `mq.daily-notify-limit` config.
 
 **Adding a New Module:**
 1. Create `api/v1/{module}/enter.go` with API group struct
 2. Create `service/{module}/enter.go` with service group struct
 3. Create `model/{module}/` with GORM models
 4. Create `router/{module}/enter.go` with router group struct
-5. Register in parent `enter.go` files and `initialize/router.go`
+5. Register in all parent `enter.go` files and `initialize/router.go`
+
+## Kubernetes Webhook
+
+The webhook is a mutating admission webhook that patches pod CPU/memory requests based on `Recommendation` CRs (group: `bcs.finops.io`, version: `v1alpha1`).
+
+**Flow:** `POST /mutate` → `RecommendationApi.ServeMutate()` → `RecommendationService.MutatePod()` → JSON Patch response
+
+**Indexer key:** `{clusterId}/{namespace}/{workloadName}` — enables O(1) cache lookup.
+
+**Validation:** Recommended CPU is capped at the container's existing limit to prevent pod startup failure.
+
+TLS cert/key paths are configured via `system.tls-cert` / `system.tls-key` in `config.yaml`.
 
 ## Middleware
 
-- `middleware.AdminJWTAuth()` - JWT authentication for admin routes
-- `middleware.Cors()` - CORS handling
+- `middleware.AdminJWTAuth()` – Token validation for protected admin routes
+- `middleware.Cors()` – CORS handling (supports POST, GET, OPTIONS, DELETE, PUT)
 
 ## Tech Stack
 
-- **Go:** 1.24
-- **Framework:** Gin v1.11
-- **ORM:** GORM v1.31
-- **Config:** Viper (config.yaml)
-- **Logging:** Uber Zap (logs to /log/ directory)
-- **Database:** MySQL 5.7+
+- **Go:** 1.24+ | **Framework:** Gin v1.11 | **ORM:** GORM v1.31
+- **Config:** Viper (`config.yaml`) | **Logging:** Uber Zap (logs to `/log/`)
+- **Database:** MySQL 5.7+ | **K8s:** `k8s.io/client-go` dynamic client
 
 ## Database Tables
 
-- `admin_user` - Admin users
-- `admin_user_token` - Admin tokens
-- `prometheus_alert` - Alerts
+- `admin_user` – Users; default: `admin` / `123456` (MD5 hashed)
+- `admin_user_token` – JWT tokens keyed by `admin_user_id`
+- `prometheus_alert` – Alerts with dedup fingerprint and notification tracking
